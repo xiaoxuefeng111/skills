@@ -13,7 +13,7 @@ Appium 自动化流程审核与脚本生成技能。
 ## 安装
 
 ```bash
-npx skills add your-username/your-repo@appium-flow-audit
+npx skills add xiaoxuefeng111/skills
 ```
 
 ## 使用
