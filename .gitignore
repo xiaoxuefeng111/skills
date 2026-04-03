@@ -1,0 +1,5 @@
+node_modules/
+appium-tests/
+*.log
+.DS_Store
+Thumbs.db
