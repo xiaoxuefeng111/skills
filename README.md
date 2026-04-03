@@ -17,7 +17,7 @@ Appium 自动化流程审核与脚本生成技能。
 
 **安装：**
 ```bash
-npx skills add xiaoxuefeng111/skills@appium-flow-audit
+npx skills add https://github.com/xiaoxuefeng111/skills --skill appium-flow-audit
 ```
 
 **使用：**
