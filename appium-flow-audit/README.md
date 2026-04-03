@@ -19,10 +19,11 @@ npx skills add https://github.com/xiaoxuefeng111/skills --skill appium-flow-audi
 ## 使用
 
 触发关键词：
-- "录制脚本"
-- "采集页面"
-- "生成脚本"
-- "流程审核"
+- "录制脚本"、"智能录制"
+- "采集页面"、"元素采集"
+- "生成测试脚本"、"生成脚本"
+- "Appium录制"、"自动化录制"
+- "元素定位"、"定位元素"
 
 ## 前置条件
 

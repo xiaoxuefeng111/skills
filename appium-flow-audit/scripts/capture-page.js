@@ -16,6 +16,8 @@ const { execSync } = require('child_process');
 const SmartWait = require('./smart-wait');
 const ElementMatcher = require('./element-matcher');
 const LocatorValidator = require('./locator-validator');
+const Celebrate = require('./celebrate');
+const LearningManager = require('./learning-manager');
 
 // 配置
 const pageName = process.argv[2] || 'unknown-page';
@@ -245,7 +247,11 @@ async function capturePage() {
   console.log('========================================\n');
   console.log('页面名称:', pageName);
   console.log('测试目录:', appiumTestsDir);
-  console.log('目标App:', config.android['appium:appPackage'], '\n');
+  const appPackage = config.android['appium:appPackage'];
+  console.log('目标App:', appPackage, '\n');
+
+  // 初始化学习数据管理器
+  const learningManager = new LearningManager();
 
   let driver;
   try {
@@ -477,13 +483,72 @@ class ${className} {
     const pageObjFile = path.join(appiumTestsDir, 'pages', `${pageName}.page.js`);
     fs.writeFileSync(pageObjFile, pageObj);
 
-    console.log('\n========================================');
-    console.log('  采集完成');
-    console.log('========================================\n');
+    // ========== 学习数据记录 ==========
+    console.log('[5/5] 记录学习数据...');
+
+    // 记录成功选择的定位器
+    let recordedCount = 0;
+
+    // 记录输入框定位器
+    elements.editText.forEach((e, i) => {
+      const label = e.hint || e.text || `输入框${i+1}`;
+      if (e.resourceId) {
+        learningManager.recordSuccess(label, {
+          type: 'resource-id',
+          value: e.resourceId,
+          xpath: `//*[@resource-id="${e.resourceId}"]`
+        }, appPackage);
+        recordedCount++;
+      } else if (e.hint) {
+        learningManager.recordSuccess(label, {
+          type: 'hint',
+          value: e.hint,
+          xpath: `//*[@hint="${e.hint}"]`
+        }, appPackage);
+        recordedCount++;
+      }
+    });
+
+    // 记录可点击元素定位器
+    clickables.slice(0, 15).forEach((e, i) => {
+      const label = e.text || e.contentDesc;
+      if (e.resourceId) {
+        learningManager.recordSuccess(label, {
+          type: 'resource-id',
+          value: e.resourceId,
+          xpath: `//*[@resource-id="${e.resourceId}"]`
+        }, appPackage);
+        recordedCount++;
+      } else if (e.contentDesc) {
+        learningManager.recordSuccess(label, {
+          type: 'content-desc',
+          value: e.contentDesc,
+          xpath: `//*[@content-desc="${e.contentDesc}"]`
+        }, appPackage);
+        recordedCount++;
+      } else if (e.text) {
+        learningManager.recordSuccess(label, {
+          type: 'text',
+          value: e.text,
+          xpath: `//*[@text="${e.text}"]`
+        }, appPackage);
+        recordedCount++;
+      }
+    });
+
+    console.log(`✓ 已记录 ${recordedCount} 个定位器学习数据\n`);
+
+    // 获取学习统计
+    const learningStats = learningManager.getLearningStats(appPackage);
+
+    // ========== 录制成功反馈（烟花效果）==========
+    Celebrate.showSuccess({ message: '页面元素采集完成，学习数据已更新！' });
+
     console.log('输出文件:');
     console.log('- 页面源码:', sourceFile);
     console.log('- 分析报告:', reportFile);
     console.log('- Page Object:', pageObjFile);
+    console.log('- 学习数据: rules/' + appPackage + '.json');
 
     console.log('\n元素统计:');
     console.log('- 输入框:', elements.editText.length, '个');
@@ -491,6 +556,15 @@ class ${className} {
     console.log('- 按钮:', elements.button.length, '个');
     console.log('- 可点击:', elements.clickable.length, '个');
     console.log('- 总计:', elements.all.length, '个');
+
+    // 显示学习统计
+    console.log('\n学习统计:');
+    console.log('- 已记录元素:', learningStats.totalElements, '个');
+    console.log('- 已记录定位器:', learningStats.totalLocators, '个');
+    console.log('- 总使用次数:', learningStats.totalUsage, '次');
+    console.log('- 总成功次数:', learningStats.totalSuccess, '次');
+    console.log('- 综合成功率:', (learningStats.overallSuccessRate * 100).toFixed(1) + '%');
+    console.log('- 会话次数:', learningStats.totalSessions, '次');
 
     // 打印关键元素
     if (elements.editText.length > 0) {
@@ -508,6 +582,9 @@ class ${className} {
         console.log(`  ${i+1}. ${label}`);
       });
     }
+
+    // ========== 录制结束交互菜单 ==========
+    console.log(Celebrate.showRecordEndMenu(1));
 
   } catch (error) {
     console.error('\n❌ 采集失败:', error.message);

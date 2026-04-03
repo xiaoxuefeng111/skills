@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Learning data (user specific)
+rules/*.json
+
+# Test artifacts
+tests/test-rules/
+tests/test-rules-integration/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Private docs (not for public)
+docs/
+tests/TEST_REPORT.md
+使用指南.md

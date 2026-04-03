@@ -1,12 +1,15 @@
 /**
  * 智能元素匹配模块
  * 根据用户描述智能匹配候选元素，按稳定性排序
+ * 集成学习机制，动态调整推荐权重
  *
  * 用法:
  *   const ElementMatcher = require('./element-matcher');
  *   const matcher = new ElementMatcher(elements);
- *   const candidates = matcher.match('点击卖出');
+ *   const candidates = matcher.match('点击卖出', { appPackage: 'com.example.app' });
  */
+
+const LearningManager = require('./learning-manager');
 
 /**
  * 定位器稳定性评分
@@ -30,18 +33,23 @@ const ACTION_KEYWORDS = {
 };
 
 class ElementMatcher {
-  constructor(elements) {
+  constructor(elements, options = {}) {
     this.elements = elements || { editText: [], button: [], textView: [], clickable: [], all: [] };
+    this.learningManager = options.learningManager || new LearningManager(options.learningOptions || {});
+    this.currentAppPackage = null;
   }
 
   /**
    * 智能匹配入口
    * @param {string} description - 用户描述，如 "点击卖出"
    * @param {Object} options - 配置选项
+   * @param {string} options.appPackage - 应用包名（用于学习机制）
+   * @param {number} options.maxCandidates - 最大候选数量
    * @returns {Array} 匹配结果列表
    */
   match(description, options = {}) {
-    const { maxCandidates = 3 } = options;
+    const { maxCandidates = 3, appPackage = null } = options;
+    this.currentAppPackage = appPackage;
 
     // 1. 解析用户描述
     const parsed = this.parseDescription(description);
@@ -54,13 +62,25 @@ class ElementMatcher {
       return [];
     }
 
-    // 3. 计算稳定性并排序
+    // 3. 计算稳定性评分
     const scored = matchedElements.map(elem => this.scoreElement(elem));
 
-    // 4. 排序：稳定性高的在前
-    scored.sort((a, b) => b.stabilityScore - a.stabilityScore);
+    // 4. 如果有学习数据，应用动态评分
+    if (appPackage) {
+      scored.forEach(candidate => {
+        this.applyLearningWeight(candidate, parsed.target, appPackage);
+      });
+    }
 
-    // 5. 返回 top N 候选
+    // 5. 排序：综合评分高的在前
+    scored.sort((a, b) => b.finalScore - a.finalScore);
+
+    // 6. 检查是否有历史偏好定位器需要提升
+    if (appPackage) {
+      this.boostPreferredLocators(scored, parsed.target, appPackage);
+    }
+
+    // 7. 返回 top N 候选
     return scored.slice(0, maxCandidates);
   }
 
@@ -205,8 +225,113 @@ class ElementMatcher {
       stabilityLevel,
       position,
       type: elemType,
-      bounds: elem.bounds
+      bounds: elem.bounds,
+      finalScore: stabilityScore, // 初始等于稳定性评分，后续会被学习权重调整
+      learningBoost: 0, // 学习机制提升值
+      hasHistory: false // 是否有历史记录
     };
+  }
+
+  /**
+   * 应用学习权重（动态评分）
+   * @param {Object} candidate - 候选元素
+   * @param {string} elementName - 元素名称（用户描述的目标）
+   * @param {string} appPackage - 应用包名
+   */
+  applyLearningWeight(candidate, elementName, appPackage) {
+    if (!candidate.locator) return;
+
+    // 获取学习权重
+    const learningWeight = this.learningManager.calculateRecommendWeight(
+      elementName,
+      candidate.locator,
+      appPackage
+    );
+
+    // 获取成功率
+    const successRate = this.learningManager.getSuccessRate(
+      candidate.locator,
+      appPackage,
+      elementName
+    );
+
+    // 动态评分公式：最终评分 = 基础评分 × (1 + 学习权重)
+    // 学习权重范围约 0.8-1.5，所以提升范围约 0-50%
+    candidate.learningBoost = learningWeight;
+    candidate.finalScore = candidate.stabilityScore * (1 + learningWeight * 0.1);
+    candidate.hasHistory = successRate > 0;
+
+    // 如果有历史成功记录，添加标记
+    if (candidate.hasHistory) {
+      candidate.successRate = successRate;
+    }
+  }
+
+  /**
+   * 提升历史偏好定位器（将成功的定位器排到前列）
+   * @param {Array} candidates - 候选列表
+   * @param {string} elementName - 元素名称
+   * @param {string} appPackage - 应用包名
+   */
+  boostPreferredLocators(candidates, elementName, appPackage) {
+    // 获取偏好定位器
+    const preferred = this.learningManager.getPreferredLocator(elementName, appPackage);
+
+    if (!preferred) return;
+
+    // 查找匹配偏好定位器类型的候选
+    const preferredIndex = candidates.findIndex(c =>
+      c.locator && c.locator.type === preferred.type && c.locator.value === preferred.value
+    );
+
+    if (preferredIndex > 0) {
+      // 找到匹配的偏好定位器，将其提升到第一位
+      const preferredCandidate = candidates[preferredIndex];
+      preferredCandidate.isPreferred = true; // 标记为偏好定位器
+      preferredCandidate.finalScore += 5; // 额外提升评分
+
+      // 重新排序
+      candidates.sort((a, b) => b.finalScore - a.finalScore);
+
+      console.log(`  📚 学习提示: 发现历史偏好定位器 "${preferred.type}" 已提升排序`);
+    }
+  }
+
+  /**
+   * 记录用户选择（供 capture-page.js 调用）
+   * @param {Object} candidate - 用户选择的候选
+   * @param {string} elementName - 元素名称
+   * @param {string} appPackage - 应用包名
+   * @returns {Object} 记录结果
+   */
+  recordUserChoice(candidate, elementName, appPackage) {
+    if (!candidate || !candidate.locator || !appPackage) {
+      return null;
+    }
+
+    return this.learningManager.recordSuccess(elementName, candidate.locator, appPackage);
+  }
+
+  /**
+   * 记录选择失败（供 capture-page.js 调用）
+   * @param {Object} candidate - 失败的候选
+   * @param {string} elementName - 元素名称
+   * @param {string} appPackage - 应用包名
+   */
+  recordChoiceFailure(candidate, elementName, appPackage) {
+    if (!candidate || !candidate.locator || !appPackage) {
+      return;
+    }
+
+    this.learningManager.recordFailure(elementName, candidate.locator, appPackage);
+  }
+
+  /**
+   * 获取学习管理器实例（供外部访问）
+   * @returns {LearningManager} 学习管理器
+   */
+  getLearningManager() {
+    return this.learningManager;
   }
 
   /**
@@ -283,7 +408,7 @@ class ElementMatcher {
    * @returns {string} 格式化的字符串
    */
   formatCandidates(candidates, options = {}) {
-    const { showValidated = true } = options;
+    const { showValidated = true, showLearning = true } = options;
 
     if (candidates.length === 0) {
       return '未找到匹配元素';
@@ -297,12 +422,22 @@ class ElementMatcher {
       const stars = c.stabilityLevel === 'high' ? '⭐⭐⭐' :
                     c.stabilityLevel === 'medium' ? '⭐⭐' : '⭐';
 
+      // 学习机制标记
+      const learningMark = showLearning && c.isPreferred ? '📚偏好' :
+                           showLearning && c.hasHistory ? '📖历史' : '';
+
       output += `\n  [${num}] ${c.label}`;
+      if (learningMark) {
+        output += ` ${learningMark}`;
+      }
       if (showValidated && validated) {
         output += ` ${validated}`;
       }
       output += `\n      定位器: ${c.locator.xpath}`;
       output += `\n      稳定性: ${stars} ${c.stabilityLevel === 'high' ? '高' : c.stabilityLevel === 'medium' ? '中' : '低'}`;
+      if (showLearning && c.successRate) {
+        output += ` (成功率: ${(c.successRate * 100).toFixed(0)}%)`;
+      }
       output += `\n      位置: ${c.position}`;
     });
 
