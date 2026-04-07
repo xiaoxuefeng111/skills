@@ -1,0 +1,83 @@
+# Jenkins 配置模板
+# 文件路径: configs/jenkins.yaml
+#
+# ⚠️ 重要：所有敏感凭据通过环境变量提供，不要在此文件中硬编码！
+#
+# 必需环境变量:
+#   - JENKINS_USER: Jenkins 用户名
+#   - JENKINS_TOKEN: Jenkins API Token
+#
+# 可选环境变量:
+#   - JENKINS_URL: 标准 Jenkins URL
+#   - JENKINS_URL_TDXFLUTTER: TdxFlutter 专用 Jenkins URL
+
+# Jenkins 服务器配置
+jenkins:
+  # Jenkins 服务器 URL（可通过 JENKINS_URL 环境变量覆盖）
+  url: "${JENKINS_URL:-http://jenkins.company.com:8080}"
+
+  # TdxFlutter 专用 Jenkins URL（可通过 JENKINS_URL_TDXFLUTTER 环境变量覆盖）
+  tdx_flutter_url: "${JENKINS_URL_TDXFLUTTER:-http://192.168.30.28:8080}"
+
+  # 认证方式: basic / api_token
+  auth_type: "api_token"
+
+  # 认证信息（从环境变量读取，不要在此硬编码）
+  # 设置方法: export JENKINS_USER='your-username'
+  #           export JENKINS_TOKEN='your-api-token'
+  username: "${JENKINS_USER}"
+  api_token: "${JENKINS_TOKEN}"
+
+  # 连接超时配置（秒）
+  timeout:
+    connect: 10
+    read: 60
+    build_poll: 1800  # 构建轮询超时
+
+  # 轮询配置
+  poll:
+    interval: 10  # 轮询间隔（秒）
+    max_iterations: 180  # 最大轮询次数（180 * 10 = 30分钟）
+
+  # 重试配置
+  retry:
+    max_attempts: 3
+    initial_interval: 5
+    max_interval: 60
+    multiplier: 2
+
+  # 并发控制
+  concurrency:
+    max_builds: 5        # 最大并行构建数
+    queue_timeout: 300   # 队列等待超时（秒）
+
+# QS_Android 项目 Jenkins Job 配置
+projects:
+  QS_Android:
+    # Job 名称模板
+    job_template: "QS_Android-{broker}-build"
+
+    # 默认参数
+    default_params:
+      GRADLE_TASK: "assembleRelease"
+      BUILD_TYPE: "release"
+
+  TdxFlutter:
+    job_template: "TdxFlutter-{broker}-build"
+    default_params:
+      FLUTTER_COMMAND: "build aar"
+
+  TDX_Android:
+    job_template: "TDX_Android-{broker}-build"
+    default_params:
+      GRADLE_TASK: "assembleRelease"
+
+# 构建状态映射
+build_status_mapping:
+  SUCCESS: "SUCCESS"
+  FAILURE: "FAIL"
+  ABORTED: "CANCELLED"
+  UNSTABLE: "FAIL"
+  NOT_BUILT: "PENDING"
+  IN_PROGRESS: "RUNNING"
+  QUEUED: "PENDING"

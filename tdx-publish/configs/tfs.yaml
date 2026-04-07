@@ -1,0 +1,111 @@
+# TFS Git 配置模板
+# 文件路径: configs/tfs.yaml
+#
+# ⚠️ 重要：所有敏感凭据通过环境变量提供，不要在此文件中硬编码！
+#
+# 必需环境变量:
+#   - TFS_GIT_TOKEN: TFS Git PAT Token（用于 Git 认证）
+#
+# 可选环境变量:
+#   - TFS_REPO_URL: TFS Git 仓库 URL
+#   - TFS_USERNAME: Git 用户名（可选，PAT 通常不需要）
+
+# TFS Git 仓库配置
+tfs:
+  # 远端仓库 URL（可通过 TFS_REPO_URL 环境变量覆盖）
+  url: "${TFS_REPO_URL:-http://192.168.40.200:8080/tfs/OpenSDK/_git/FlutterBuild}"
+
+  # 认证方式: pat / ssh
+  auth_type: "pat"
+
+  # PAT Token（从环境变量读取，不要在此硬编码）
+  # 设置方法: export TFS_GIT_TOKEN='your-pat-token'
+  pat_token: "${TFS_GIT_TOKEN}"
+
+  # 用户名（可选，某些 TFS 配置可能需要）
+  username: "${TFS_USERNAME:-}"
+
+  # 本地镜像路径（用于缓存/调试）
+  local_mirror: "E:\\FlutterBuild"
+
+  # 连接超时配置（秒）
+  timeout:
+    connect: 10
+    read: 60
+    clone: 300
+
+  # 重试配置
+  retry:
+    max_attempts: 3
+    initial_interval: 5
+
+# FlutterBuild 仓库配置
+flutter_build:
+  # 仓库名称
+  repo_name: "FlutterBuild"
+
+  # 配置文件目录结构
+  config_dirs:
+    QS_Android: "QS_Android"
+    TdxFlutter: "TdxFlutter"
+    TDX_Android: "TDX_Android"
+
+  # 模板文件命名规则
+  template_pattern: "{broker}.txt"
+
+  # 模板文件格式说明
+  # 格式: module | branch | build_commit | compare_commit
+  # 示例: QSBaseLib | master | abc123def | abc123def
+
+# 模板文件路径映射
+template_paths:
+  QS_Android:
+    # broker 名称 -> 模板文件路径
+    SJZQ: "QS_Android/SJZQ.txt"
+    YHCLIENT: "QS_Android/YHCLIENT.txt"
+    DEFAULT: "QS_Android/DEFAULT.txt"
+
+  TdxFlutter:
+    DEFAULT: "TdxFlutter/config.txt"
+
+  TDX_Android:
+    DEFAULT: "TDX_Android/config.txt"
+
+# Git 操作配置
+git:
+  # 默认分支
+  default_branch: "master"
+
+  # 用户信息（用于提交）
+  user:
+    name: "AAR Publish Bot"
+    email: "bot@company.com"
+
+  # 提交消息模板
+  commit_message_template: |
+    chore(config): update {module} build config
+
+    - Branch: {branch}
+    - Build Commit: {build_commit}
+    - Compare Commit: {compare_commit}
+    - Operator: {operator}
+    - CorrelationId: {correlation_id}
+
+  # 分支保护处理
+  branch_protection:
+    # 受保护分支列表
+    protected_branches:
+      - master
+      - release/*
+
+    # 受保护分支的处理方式: pr / direct
+    # pr: 创建 Pull Request
+    # direct: 直接提交（需要权限）
+    strategy: "direct"
+
+  # 并发写入处理
+  concurrent_write:
+    # 冲突处理策略: rebase / merge / abort
+    conflict_strategy: "rebase"
+    # 最大重试次数
+    max_retries: 3
