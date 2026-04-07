@@ -210,7 +210,12 @@ done
 工程=AppCCGR        # 必填：AppCCGR / AppXNZQ_SDK / AppHBZQ
 分支=成长层新框架   # 必填：App 工程的分支名
 类型=Appbeta        # 必填：Appbeta 或 AppRelease 或 两者都更新
-定义ID=403          # 必填：TFS 构建定义 ID
+定义ID=403          # 必填：TFS 构建定义 ID（从构建页面URL获取，如 definitionId=403）
+
+💡 定义ID获取方式：
+   打开 TFS 构建页面，URL格式如：
+   http://192.168.40.200:8080/tfs/OpenSDK/AppCCGR/_build?definitionId=403
+   其中 definitionId=403 就是构建定义ID
 
 ═════════════════════════════════════════════════════════════════
 📋 可选工程、分支及构建定义：
