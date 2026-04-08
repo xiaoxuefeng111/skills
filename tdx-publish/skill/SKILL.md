@@ -923,6 +923,128 @@ for i in $(seq 1 60); do
 done
 ```
 
+**Step P6-3: 构建监控（带系统弹框提示）**
+
+**⚠️ 创建完整监控脚本（支持弹框提示）：**
+
+```javascript
+// 使用 Write 工具创建 tfs-poll.js
+const { NtlmClient } = require('axios-ntlm');
+const { exec } = require('child_process');
+
+const TFS_URL = process.argv[2];
+const COLLECTION = process.argv[3];
+const PROJECT = process.argv[4];
+const USERNAME = process.argv[5];
+const PASSWORD = process.argv[6];
+const BUILD_ID = process.argv[7];
+const POLL_INTERVAL = parseInt(process.argv[8]) || 30000;
+
+let domain = '', username = USERNAME;
+if (USERNAME.includes('\\')) {
+  const parts = USERNAME.split('\\');
+  domain = parts[0];
+  username = parts[1];
+}
+
+const ntlmClient = NtlmClient({ username, password: PASSWORD, domain, workstation: '' });
+
+// Windows 弹框 (使用 mshta)
+function showAlert(title, message) {
+  const cleanMsg = message.replace(/[\r\n]/g, ' ').replace(/"/g, "'");
+  const cleanTitle = title.replace(/"/g, "'");
+  exec(`mshta vbscript:Execute("msgbox \\"${cleanMsg}\\",64,\\"${cleanTitle}\\"(window.close)")`);
+}
+
+// 提示音
+function beep(success) {
+  if (success) {
+    exec('powershell -Command "[console]::Beep(1000, 300); [console]::Beep(1500, 300)"');
+  } else {
+    exec('powershell -Command "[console]::Beep(300, 500)"');
+  }
+}
+
+async function checkStatus() {
+  const urls = [
+    `${TFS_URL}/tfs/${COLLECTION}/${PROJECT}/_apis/build/builds/${BUILD_ID}?api-version=2.0`,
+    `${TFS_URL}/tfs/DefaultCollection/${PROJECT}/_apis/build/builds/${BUILD_ID}?api-version=2.0`,
+  ];
+  for (const url of urls) {
+    try {
+      return (await ntlmClient.get(url)).data;
+    } catch (e) {}
+  }
+  return null;
+}
+
+async function monitor() {
+  console.log(`监控构建 #${BUILD_ID}...`);
+  let startTime = Date.now();
+
+  while (true) {
+    const data = await checkStatus();
+    if (!data) {
+      console.log('无法获取状态，重试...');
+      await new Promise(r => setTimeout(r, POLL_INTERVAL));
+      continue;
+    }
+
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const mins = Math.floor(elapsed / 60), secs = elapsed % 60;
+    console.log(`[${new Date().toLocaleTimeString()}] ${data.status} | ${data.result || 'running'} | ${mins}m${secs}s`);
+
+    if (data.status === 'completed') {
+      const isSuccess = data.result === 'succeeded';
+      const branch = (data.sourceBranch || '').replace('refs/heads/', '');
+
+      console.log(isSuccess ? '\n✅ 构建成功!' : '\n❌ 构建失败!');
+      console.log(`构建号: ${data.buildNumber}, 分支: ${branch}, 用时: ${mins}m${secs}s`);
+
+      // 弹框提示
+      showAlert(isSuccess ? 'TFS Build Success' : 'TFS Build Failed',
+        `Build ${data.buildNumber} ${data.result}. Branch: ${branch}. Time: ${mins}m${secs}s`);
+      beep(isSuccess);
+
+      process.exit(isSuccess ? 0 : 1);
+    }
+    await new Promise(r => setTimeout(r, POLL_INTERVAL));
+  }
+}
+monitor().catch(e => { console.error('错误:', e.message); process.exit(1); });
+```
+
+**执行监控脚本：**
+
+```bash
+# 后台运行监控（30秒轮询）
+node tfs-poll.js \
+  "http://192.168.40.200:8080" \
+  "OpenSDK" \
+  "${APP_REPO}" \
+  "${TFS_USER}" \
+  "${TFS_PASSWORD}" \
+  "${BUILD_ID}" \
+  30000
+
+# 或在技能目录中运行
+cd ~/.agents/skills/tdx-publish
+node tfs-poll.js "http://192.168.40.200:8080" "OpenSDK" "AppCCGR" "tdxxiaoxuefeng" "123456" "55167" 30000
+```
+
+**监控输出示例：**
+```
+监控构建 #55167...
+[08:15:30] inProgress | running | 0m15s
+[08:16:00] inProgress | running | 0m45s
+[08:16:30] completed | succeeded | 1m15s
+
+✅ 构建成功!
+构建号: 20260408.1, 分支: 成长层新框架, 用时: 1m15s
+```
+
+**⚠️ 构建完成后会自动弹出系统对话框提示！**
+
 **获取构建定义列表（验证配置）：**
 
 **创建定义列表查询脚本：**
