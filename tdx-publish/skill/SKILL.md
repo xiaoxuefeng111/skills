@@ -1119,7 +1119,7 @@ node tfs-poll.js \
 
 # 或在技能目录中运行
 cd ~/.agents/skills/tdx-publish
-node tfs-poll.js "http://192.168.40.200:8080" "OpenSDK" "AppCCGR" "tdxxiaoxuefeng" "123456" "55167" 30000
+node tfs-poll.js "http://192.168.40.200:8080" "OpenSDK" "AppCCGR" "${TFS_USER}" "${TFS_PASSWORD}" "55167" 30000
 ```
 
 **监控输出示例：**

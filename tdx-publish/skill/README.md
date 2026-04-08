@@ -39,18 +39,18 @@ npx skills add https://github.com/xiaoxuefeng111/skills --skill tdx-publish
 
 **所需凭据：**
 
-| 凭据 | 说明 | 示例 |
-|------|------|------|
-| `TFS_USER` | TFS Git 用户名 | `tdxxiaoxuefeng` |
-| `TFS_PASSWORD` | TFS Git 密码 | `123456` |
+| 凭据 | 说明 |
+|------|------|
+| `TFS_USER` | TFS Git 用户名 |
+| `TFS_PASSWORD` | TFS Git 密码 |
 
 **Jenkins 无需认证**，使用 session cookie + CRUMB 方式触发构建。
 
 **输入示例（按提示回复）：**
 
 ```
-TFS_USER=tdxxiaoxuefeng
-TFS_PASSWORD=123456
+TFS_USER=您的用户名
+TFS_PASSWORD=您的密码
 ```
 
 凭据会保存到 `~/.env` 文件，下次自动加载。

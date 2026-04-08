@@ -11,7 +11,7 @@ const POLL_INTERVAL = parseInt(process.argv[8]) || 30000;
 
 if (!USERNAME || !PASSWORD || !BUILD_ID) {
   console.log('用法: node tfs-poll.js <TFS_URL> <COLLECTION> <PROJECT> <USERNAME> <PASSWORD> <BUILD_ID> [POLL_INTERVAL]');
-  console.log('示例: node tfs-poll.js http://192.168.40.200:8080 OpenSDK AppCCGR tdxxiaoxuefeng 123456 55167 30000');
+  console.log('示例: node tfs-poll.js http://192.168.40.200:8080 OpenSDK AppCCGR $TFS_USER $TFS_PASSWORD 55167 30000');
   process.exit(1);
 }
 
