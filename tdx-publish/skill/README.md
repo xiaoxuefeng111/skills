@@ -139,13 +139,17 @@ tdxtoolutil=2.18.0-2504081235
 - `TDX_Android/*.txt`
 - `TdxFlutter/*.txt`
 
-## 可选打包工程
+## 可选打包工程（示例）
+
+> ⚠️ 以下仅为部分工程示例，完整列表可通过 TFS API 或构建页面获取。
 
 | 工程 | 常用分支 | 构建定义 ID |
 |------|---------|-------------|
 | AppCCGR | 安全认证、成长层新框架、国密 | 403 (Beta), 404 (Release) |
 | AppXNZQ_SDK | 4.0.0-7-L2、4.0.0-期权 | 382 (Beta), 384 (Release) |
 | AppHBZQ | master、Flutter、czy | 125 (Beta), 126 (Release) |
+
+**获取完整构建定义列表：** 运行技能时会自动查询，或访问 TFS 构建页面查看。
 
 ## 环境依赖
 
