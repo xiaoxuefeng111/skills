@@ -1,6 +1,6 @@
 # tdx-publish Skill
 
-> AAR 发布与 APK 打包自动化 - SpectrAI 标准 Skill
+> AAR 发布与 APK 打包自动化 - Claude Code Skill
 
 ## 简介
 
@@ -167,7 +167,7 @@ tdxtoolutil=2.18.0-2504081235
 ---
 
 > 更新日期: 2026-04-08
-> 类型: prompt（标准 Skill）
+> 类型: Claude Code Skill
 > 最近更新：
 > - 新增 `--only-pack` 模式（仅打包 APK）
 > - 支持多模块不同版本号
