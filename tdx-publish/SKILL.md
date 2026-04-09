@@ -5,7 +5,7 @@ description: AAR 发布与 APK 打包自动化 - 更新 FlutterBuild 仓库模�
 
 # /tdx-publish Skill
 
-> AAR 发布 + APK 打包自动化 - 标准 SpectrAI Skill
+> AAR 发布 + APK 打包自动化
 
 ## 功能描述
 

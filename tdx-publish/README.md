@@ -1,6 +1,6 @@
 # tdx-publish Skill
 
-> AAR 发布与 APK 打包自动化 - Claude Code Skill
+> AAR 发布与 APK 打包自动化
 
 ## 简介
 

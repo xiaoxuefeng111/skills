@@ -1,7 +1,7 @@
 {
   "name": "tdx-publish",
   "slashCommand": "tdx-publish",
-  "description": "AAR 发布自动化 - 更新 FlutterBuild 仓库模板文件，触发 Jenkins 构建，发布产物。AI 直接调用工具执行，无需外部脚本。",
+  "description": "AAR 发布与 APK 打包自动化 - 更新 FlutterBuild 仓库模板文件，触发 Jenkins 构建，支持打包到 App 工程。触发词：\"发布AAR\"、\"编译模块\"、\"打包APK\"、\"更新模板\"。",
   "category": "development",
   "compatibleProviders": "all",
   "type": "prompt",
