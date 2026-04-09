@@ -4,7 +4,10 @@
 
 ## 简介
 
-实现 QS_Android / TDX_Android / TdxFlutter 模块发布自动化，支持 AAR 发布和 APK 打包两种模式。
+实现 QS_Android / TDX_Android / TdxFlutter 模块发布自动化，支持三种模式：
+- **仅发布 AAR**：更新模板 → Jenkins 构建 → 发布到 Maven
+- **AAR + APK 打包**：发布 AAR 后自动打包到 App 工程
+- **仅打包 APK**：AAR 已发布，只更新版本号并打包
 
 ## 快速开始
 
