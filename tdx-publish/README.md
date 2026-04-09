@@ -161,11 +161,13 @@ tdxtoolutil=2.18.0-2504081235
 
 ## 文件清单
 
-| 文件 | 说明 |
+| 文件/目录 | 说明 |
 |------|------|
 | `SKILL.md` | Skill 定义（完整流程、参数、错误处理） |
-| `skill-config.json` | SpectrAI 安装配置 |
+| `skill-config.json` | 安装配置 |
 | `README.md` | 本说明文件 |
+| `configs/` | Jenkins、TFS 配置文件 |
+| `scripts/` | TFS 构建脚本（tfs-build.js、tfs-poll.js 等） |
 
 ## 详细文档
 
@@ -173,10 +175,10 @@ tdxtoolutil=2.18.0-2504081235
 
 ---
 
-> 更新日期: 2026-04-08
-> 类型: Claude Code Skill
+> 更新日期: 2026-04-09
 > 最近更新：
 > - 新增 `--only-pack` 模式（仅打包 APK）
 > - 支持多模块不同版本号
 > - 支持 TDX_Android 目录模板
 > - TFS 构建监控带系统弹框提示
+> - 脚本文件统一放到 scripts/ 目录
