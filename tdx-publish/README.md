@@ -177,7 +177,7 @@ tdxtoolutil=2.18.0-2504081235
 
 ## v2.1 修复说明 (2026-04-14)
 
-**问题修复：**
+### 问题修复
 
 | 问题 | 修复方案 |
 |------|----------|
@@ -187,6 +187,68 @@ tdxtoolutil=2.18.0-2504081235
 **新增函数：**
 - `get_maven_url()` - 从构建日志解析 Artifactory 发布地址
 - `get_maven_info()` - 获取模块名、版本号、下载地址完整信息
+
+### 自主学习机制（使用频率学习）
+
+**学习原理：** 每次构建成功后，自动记录使用频率，动态调整示例排序。
+
+**学习触发时机：**
+
+| 触发点 | 操作 |
+|--------|------|
+| 构建成功 | 更新模板文件、模块的使用计数 |
+| 执行结束 | 写入 `logs/usage-stats.json` |
+
+**统计文件格式 (`logs/usage-stats.json`)：**
+
+```json
+{
+  "template_files": {
+    "XNZQ-native-beta.txt": {"count": 15, "last_used": "2026-04-14"},
+    "HBZQ-native-beta-2026.txt": {"count": 10, "last_used": "2026-04-10"}
+  },
+  "modules": {
+    "tdxframework": {"count": 20, "last_used": "2026-04-14"},
+    "tdxHQ": {"count": 18, "last_used": "2026-04-14"}
+  },
+  "combinations": {
+    "XNZQ-native-beta.txt+tdxframework": {"count": 10},
+    "XNZQ-native-beta.txt+tdxHQ": {"count": 8}
+  }
+}
+```
+
+**学习逻辑：**
+
+```
+触发技能时:
+1. 检查 logs/usage-stats.json 是否存在
+2. 按 count 降序排列模板文件和模块
+3. 生成高频示例展示给用户
+4. 首次使用时展示默认示例
+
+构建成功后:
+1. 解析本次使用的模板文件、模块、组合
+2. 对应的 count += 1
+3. 更新 last_used = 当前日期
+4. 写回 logs/usage-stats.json
+```
+
+**动态示例输出：**
+
+AI 根据频率自动推荐高频使用的模板和模块：
+
+```
+# 高频使用示例（自动推荐）
+/tdx-publish XNZQ-native-beta.txt tdxframework XNZQL2 <commit> 4.5
+/tdx-publish XNZQ-native-beta.txt tdxHQ master-xnzq <commit> 4.5
+
+# 或批量（高频组合）
+XNZQ-native-beta.txt
+tdxframework XNZQL2 <commit> 4.5
+tdxHQ master-xnzq <commit> 4.5
+tdxhqgg XNZQL2 <commit> 4.5
+```
 
 ---
 
