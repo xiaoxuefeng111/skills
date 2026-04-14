@@ -1,12 +1,13 @@
 {
   "name": "tdx-publish",
   "slashCommand": "tdx-publish",
-  "description": "AAR 发布与 APK 打包自动化 - 更新 FlutterBuild 仓库模板文件，触发 Jenkins 构建，支持打包到 App 工程。触发词：\"发布AAR\"、\"编译模块\"、\"打包APK\"、\"更新模板\"。",
+  "description": "AAR 发布自动化 - 更新 FlutterBuild 仓库模板文件，触发 Jenkins 构建。支持多模块并行监控。v2.1：修复 queueId/buildNumber 转换 + Maven 地址从日志解析。",
   "category": "development",
   "compatibleProviders": "all",
   "type": "prompt",
-  "promptTemplate": "见 SKILL.md 文件",
-  "systemPromptAddition": "AAR 发布与 APK 打包自动化助手。详见 SKILL.md 获取完整流程。\n\n【三种模式】\n1. 仅发布 AAR（默认）\n2. AAR + APK 打包（--pack 参数）\n3. 仅打包 APK（--only-pack 参数，AAR 已发布）\n\n【前置检查】\n1. 凭据检测：TFS_USER/TFS_PASSWORD 环境变量\n2. Git 工具检测\n3. Node.js 检测（打包模式必需）\n\n【参数格式】\n/tdx-publish [--pack|--only-pack] 模板文件 模块 分支 commit 版本\n\n【关键脚本路径】\n~/.agents/skills/tdx-publish/scripts/tfs-build.js - 触发 TFS 构建\n~/.agents/skills/tdx-publish/scripts/tfs-poll.js - 监控 TFS 构建\n\n【打包配置】\n工程=AppCCGR/AppXNZQ_SDK/AppHBZQ\n分支=App工程分支\n类型=Appbeta/AppRelease\n定义ID=TFS构建定义ID",
-  "tags": "aar,publish,android,jenkins,tfs,qs_android",
-  "author": "architect"
+  "promptTemplate": "见 skill/SKILL.md 文件",
+  "systemPromptAddition": "作为 AAR 发布自动化助手，执行前置检查后直接调用工具完成发布。\n\n【v2.1 核心改进】\n1. 多模块并行触发 + queueId 监控（修复 buildNumber 提取）\n2. Maven 地址从构建日志解析（不是 Jenkins artifacts）\n3. 使用频率学习机制\n\n【前置检查】触发时自动执行：\n1. 凭据检测：检查 TFS_USER/TFS_PASSWORD 环境变量\n2. Jenkins 连接验证（session cookie + CRUMB）\n3. Git 工具检测\n\n【多模块触发策略】\n- 解析批量输入（支持直接粘贴模板内容）\n- 并行触发所有模块，记录每个 queueId\n- 从 /queue/item/{queueId}/api/json 获取 executable.number\n- 统一轮询监控所有构建状态\n- 从 consoleText 解析 Maven 发布地址\n\n【queueId → buildNumber 正确做法】\n触发返回 201 + Location: .../queue/item/{queueId}/\n查询 /queue/item/{queueId}/api/json\n从 executable.number 字段直接提取（不依赖 url 解析）\n\n【Maven 地址获取】\n⚠️ AAR 发布到 Artifactory Maven 仓库，不是 Jenkins artifacts\n从 consoleText 解析：Deploying artifact: http://.../xxx.aar\n\n【参数】全部必填！\ntemplate_file = 模板文件名\nmodule = 模块名\nbranch = Git分支名\ncommit = 构建commit hash\nversion = 版本号（⚠️必填！）",
+  "tags": "aar,publish,android,jenkins,tfs,qs_android,multi-module,learning,maven",
+  "author": "architect",
+  "version": "2.1"
 }

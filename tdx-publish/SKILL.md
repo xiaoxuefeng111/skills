@@ -1,121 +1,15 @@
 ---
 name: tdx-publish
-description: AAR 发布与 APK 打包自动化 - 更新 FlutterBuild 仓库模板文件，触发 Jenkins 构建，支持打包到 App 工程。触发词："发布AAR"、"编译模块"、"打包APK"、"更新模板"。
+description: AAR 发布自动化 - 更新 FlutterBuild 仓库模板文件，触发 Jenkins 构建。支持单条与批量输入。触发词："发布AAR"、"编译模块"、"更新模板"。
 ---
 
 # /tdx-publish Skill
 
-> AAR 发布 + APK 打包自动化
+> AAR 发布自动化 - 标准 SpectrAI Skill
 
 ## 功能描述
 
-实现 QS_Android / TDX_Android / TdxFlutter 单模块/批量构建发布自动化。AI 直接调用工具执行，无需外部脚本。
-
-支持三种模式：
-- **仅发布 AAR**：更新模板 → Jenkins 构建 → 发布到 Maven
-- **AAR + APK 打包**：发布 AAR 后自动打包到 App 工程
-- **仅打包 APK**：AAR 已发布，只更新版本号并打包
-
----
-
-## 🚀 快速开始
-
-### 触发方式
-
-| 方式 | 示例 |
-|------|------|
-| **Slash 命令** | `/tdx-publish CCGR-native-beta.txt tdxCore master abc123 6.9.5` |
-| **自然语言** | "发布 CCGR-native-beta.txt 中的 tdxCore，分支 master，commit abc123，版本 6.9.5" |
-| **AAR + 打包** | `/tdx-publish --pack CCGR-native-beta.txt tdxCore master abc123 6.9.5` |
-| **仅打包 APK** | `/tdx-publish --only-pack` |
-| **批量** | `/tdx-publish --input records.json` |
-
-### 参数格式
-
-```
-/tdx-publish [--pack|--only-pack] 模板文件 模块 分支 commit 版本 [模块 分支 commit 版本]...
-```
-
-| 参数 | 必填 | 说明 | 示例 |
-|------|------|------|------|
-| `--pack` | 否 | AAR 发布后自动打包到 App 工程 | 放在开头 |
-| `--only-pack` | 否 | 仅打包 APK（AAR 已发布，跳过发布流程） | 放在开头，无需模板参数 |
-| 模板文件 | ✅ | FlutterBuild 仓库中的 txt 文件 | `CCGR-native-beta.txt` |
-| 模块 | ✅ | Jenkins 构建模块名 | `tdxCore`, `tdxtoolutil` |
-| 分支 | ✅ | Git 分支名 | `master`, `master_ccgr` |
-| commit | ✅ | Commit hash（至少7位） | `eb00aa81` |
-| 版本 | ✅ | AAR 版本号 | `2.18.0` |
-
-### 执行模式
-
-**模式1：仅发布 AAR（默认）**
-```
-/tdx-publish CCGR-native-beta.txt tdxtoolutil master eb00aa81 2.18.0
-```
-→ 返回 AAR 下载链接
-
-**模式2：AAR + 平台打包（`--pack`）**
-```
-/tdx-publish --pack CCGR-native-beta.txt tdxtoolutil master eb00aa81 2.18.0
-```
-→ AAR 发布后，会提示输入打包配置：
-```
-工程=AppCCGR        # AppCCGR / AppXNZQ_SDK / AppHBZQ
-分支=成长层新框架   # App 工程分支
-类型=Appbeta        # Appbeta / AppRelease / 两者都更新
-定义ID=403          # TFS 构建定义 ID
-```
-
-**模式3：多模块仅发布 AAR**
-```
-/tdx-publish CCGR-native-beta.txt \
-   tdxtoolutil master eb00aa81 2.18.0 \
-   tdxjyframingmodule master_ccgr d63dff46 2.18.0
-```
-
-**模式4：多模块 AAR + 平台打包**
-```
-/tdx-publish --pack CCGR-native-beta.txt \
-   tdxtoolutil master eb00aa81 2.18.0 \
-   tdxjyframingmodule master_ccgr d63dff46 2.18.0
-```
-
-**模式5：仅打包 APK（`--only-pack`，AAR 已发布）**
-```
-/tdx-publish --only-pack
-```
-→ 跳过 AAR 发布流程，直接询问打包配置和模块版本：
-```
-工程=AppCCGR        # AppCCGR / AppXNZQ_SDK / AppHBZQ
-分支=成长层新框架   # App 工程分支
-类型=Appbeta        # Appbeta / AppRelease / 两者都更新
-定义ID=403          # TFS 构建定义 ID
-
-模块版本（每行一个）：
-tdxCore=2.18.0-2504081234
-tdxtoolutil=2.18.0-2504081235
-```
-
-### 可选模块列表
-
-```
-all, tdxtoolutil, tdxCore, tdxCoreSo, tdxframework,
-tdxfragmentandactivityutil, tdxHQ, tdxhqdg, tdxhqgg,
-tdxjyframingmodule, tdxoemhqmodule, tdxoemjymodule, tdxweex
-```
-
-### 可选参数
-
-| 参数 | 说明 |
-|------|------|
-| `--dry-run` | 模拟执行，不提交 Git，不触发 Jenkins |
-| `--skip-jenkins` | 仅更新模板并提交 Git |
-
-### 环境依赖
-
-- Git（必需）
-- Node.js + npm（`--pack` 打包必需）
-- TFS 凭据（首次使用会提示输入）
+实现 QS_Android / TdxFlutter 单模块/批量构建发布自动化。AI 直接调用工具执行，无需外部脚本。
 
 ---
 
@@ -228,142 +122,6 @@ fi
 git --version
 ```
 
-### Step 0d: 检测 Node.js 环境（TFS 打包必需）
-
-**⚠️ 如果命令包含 `--pack` 参数，必须检测 Node.js 环境！**
-
-```bash
-# 检测 Node.js 和 npm
-node --version
-npm --version
-
-# 如果未安装，提示用户
-if ! command -v node &> /dev/null; then
-  echo "❌ Node.js 未安装，TFS 打包功能需要 Node.js"
-  echo "💡 安装方式："
-  echo "  • Windows: 下载 https://nodejs.org/dist/latest/win-x64/node.exe"
-  echo "  • 或使用 nvm: nvm install latest"
-fi
-
-# 检查 axios-ntlm 包
-npm list axios-ntlm 2>/dev/null || npm install axios-ntlm --save-dev
-```
-
-### Step 0e: 如果有 `--pack` 参数，一次性获取所有配置
-
-**⚠️ 重要：一次性确认所有打包配置（工程、分支、构建类型、构建定义ID）！**
-
-如果命令包含 `--pack` 参数，首先安装依赖并获取构建定义列表：
-
-```bash
-# 检查并安装 axios-ntlm（TFS API 需要）
-npm list axios-ntlm 2>/dev/null || npm install axios-ntlm --save-dev
-
-# 创建临时脚本获取构建定义列表
-cat > /tmp/tfs-definitions.js << 'SCRIPT_EOF'
-const { NtlmClient } = require('axios-ntlm');
-const TFS_URL = process.argv[2];
-const COLLECTION = process.argv[3];
-const PROJECT = process.argv[4];
-const USERNAME = process.argv[5];
-const PASSWORD = process.argv[6];
-
-let domain = '', username = USERNAME;
-if (USERNAME.includes('\\')) { [domain, username] = USERNAME.split('\\'); }
-
-const ntlmClient = NtlmClient({ username, password: PASSWORD, domain, workstation: '' });
-
-const urls = [
-  `${TFS_URL}/tfs/${COLLECTION}/${PROJECT}/_apis/build/definitions?api-version=2.0`,
-  `${TFS_URL}/tfs/DefaultCollection/${PROJECT}/_apis/build/definitions?api-version=2.0`,
-];
-
-async function getDefs() {
-  for (const url of urls) {
-    try {
-      const res = await ntlmClient.get(url);
-      if (res.data.value) {
-        for (const d of res.data.value) console.log(`${d.id}|${d.name}`);
-        return;
-      }
-    } catch (e) { console.log('尝试失败:', e.message); }
-  }
-}
-getDefs();
-SCRIPT_EOF
-
-# 执行脚本获取各工程的构建定义
-for repo in AppCCGR AppXNZQ_SDK AppHBZQ; do
-  echo "=== ${repo} 构建定义 ==="
-  node /tmp/tfs-definitions.js "http://192.168.40.200:8080" "OpenSDK" "$repo" "${TFS_USER}" "${TFS_PASSWORD}"
-done
-```
-
-然后输出配置选择提示：
-
-```
-═════════════════════════════════════════════════════════════════
-📦 检测到 --pack 参数，请一次性确认打包配置：
-═════════════════════════════════════════════════════════════════
-
-请回复以下信息：
-
-工程=AppCCGR        # 必填：AppCCGR / AppXNZQ_SDK / AppHBZQ
-分支=成长层新框架   # 必填：App 工程的分支名
-类型=Appbeta        # 必填：Appbeta 或 AppRelease 或 两者都更新
-定义ID=403          # 必填：TFS 构建定义 ID（从构建页面URL获取，如 definitionId=403）
-
-💡 定义ID获取方式：
-   打开 TFS 构建页面，URL格式如：
-   http://192.168.40.200:8080/tfs/OpenSDK/AppCCGR/_build?definitionId=403
-   其中 definitionId=403 就是构建定义ID
-
-═════════════════════════════════════════════════════════════════
-📋 可选工程、分支及构建定义：
-═════════════════════════════════════════════════════════════════
-
-【AppCCGR】
-  分支列表：安全认证、安全认证-无越狱检测、股转北交所、国密、注册制、成长层新框架
-  构建定义：
-    • 长城国瑞_Android_Beta (ID: 403) - 默认分支: master
-    • 长城国瑞_Android_Release (ID: 404) - 默认分支: master
-    • 长城国瑞_IOS_Beta (ID: 405)
-    • 长城国瑞_IOS_Release (ID: 406)
-
-【AppXNZQ_SDK】
-  分支列表：4.0.0-7-L2、4.0.0-期权、4.1.0~4.6.0
-  构建定义：
-    • 西南SDK版本_Android_Beta (ID: 382)
-    • 西南SDK版本_IOS_Beta (ID: 384)
-
-【AppHBZQ】
-  分支列表：master、Flutter、czy
-  构建定义：
-    • 华宝证券_IOS_Release (ID: 121)
-    • 华宝证券_IOS_Beta (ID: 122)
-    • 华宝证券_IOS_Beta_noclear (ID: 123)
-    • 华宝证券_IOS_Release_noclear (ID: 124)
-    • 华宝证券_Android_Beta (ID: 125)
-    • 华宝证券_Android_Release (ID: 126)
-
-═════════════════════════════════════════════════════════════════
-💡 提示：
-• 类型=Appbeta：仅更新 AppAndroid/Appbeta/app/build.gradle
-• 类型=AppRelease：仅更新 AppAndroid/AppRelease/app/build.gradle
-• 类型=两者都更新：同时更新两个目录
-• ⚠️ TFS 构建需要 Node.js + axios-ntlm 库支持指定分支
-• 回复 "不需要" 可跳过打包步骤
-═════════════════════════════════════════════════════════════════
-```
-
-**用户回复后，保存配置供后续使用：**
-- APP_REPO（工程名）
-- APP_BRANCH（分支名）
-- BUILD_TYPE（Appbeta/AppRelease/两者都更新）
-- DEFINITION_ID（构建定义ID）
-
-**⚠️ 注意：AAR 发布完成后，必须先更新 build.gradle 并提交，再触发 TFS 构建！**
-
 ---
 
 ## 凭据说明
@@ -376,11 +134,40 @@ done
 
 **Jenkins 无需认证**，使用 session cookie + CRUMB 方式触发构建。
 
-**TFS 打包依赖**：
-- Node.js + npm
-- axios-ntlm 库（自动安装）
-
 **保存位置：** `~/.env` 或项目目录 `.env`
+
+---
+
+## 触发方式
+
+- **Slash 命令**: `/tdx-publish <template_file> <module> <branch> <commit>`
+- **自然语言**: "发布 CCGR-native-beta.txt 中的 tdxCore，分支 master，commit abc123"
+- **批量**: `/tdx-publish --input records.json`
+
+---
+
+## 参数说明
+
+| 参数 | 必填 | 说明 |
+|------|------|------|
+| template_file | **是** | 模板文件名，如 `HBZQ-native-beta-2026.txt` |
+| module | 是 | 模块名称，如 tdxCore、tdxHQ、tdxframework |
+| branch | 是 | Git 分支名 |
+| commit | 是 | 构建使用的 commit hash（至少7位） |
+| version | **是** | 版本号，如 `6.9.5`，**必填！为空会导致发布到 tmp 仓库** |
+
+**⚠️ 重要：VERSION 参数必填，否则构建产物会发布到 `develop-snapshot-2026-tmp` 临时仓库！**
+
+**Jenkins Module 可选值：**
+```
+all, tdxtoolutil, tdxCore, tdxCoreSo, tdxframework,
+tdxfragmentandactivityutil, tdxHQ, tdxhqdg, tdxhqgg,
+tdxjyframingmodule, tdxoemhqmodule, tdxoemjymodule, tdxweex
+```
+
+**可选参数:**
+- `--dry-run`: 模拟执行，不提交 Git，不触发 Jenkins
+- `--skip-jenkins`: 仅更新模板并提交 Git
 
 ---
 
@@ -402,18 +189,16 @@ tdxHQ,master,xyz789,old_commit_hash
 ```
 前置检查
 ├─ 0a. 检测凭据 → 缺失时询问用户 → 保存到 .env
-├─ 0b. 验证凭据有效性
-├─ 0c. 检测 Git 工具可用
-├─ 0d. 检测 Node.js 环境（--pack 参数必需）
-└─ 0e. 如果有 --pack 参数 → 立即询问打包配置并保存
+├─ 0b. 检测 Git 工具可用
+└─ 0c. 加载凭据到环境变量
       ↓
 1. 克隆 FlutterBuild 仓库
    - Bash: git clone http://192.168.40.200:8080/tfs/OpenSDK/_git/FlutterBuild
-   - 认证: 使用 TFS_USER:TFS_PASSWORD
+   - 认证: 使用 TFS_GIT_TOKEN
       ↓
 2. 搜索模板文件
    - Glob: 在仓库中搜索匹配 template_file
-   - 支持路径: QS_Android/*.txt, TDX_Android/*.txt, *.txt
+   - 支持路径: QS_Android/*.txt, *.txt
       ↓
 3. 读取模板内容
    - Read: 读取模板文件
@@ -431,9 +216,9 @@ tdxHQ,master,xyz789,old_commit_hash
    - commit message: "更新 {module} 到 {new_commit}"
       ↓
 7. 触发 Jenkins 构建
-   - Bash curl: 调用 Jenkins API（session + CRUMB）
-   - POST /job/QS_Android/buildWithParameters
-   - 参数: FILENAME, Module, VERSION
+   - WebFetch 或 Bash curl: 调用 Jenkins API
+   - POST /job/{jenkins_job}/build
+   - 认证: JENKINS_USER + JENKINS_TOKEN
       ↓
 8. 轮询构建状态
    - 循环调用 Jenkins API 查询状态
@@ -441,10 +226,10 @@ tdxHQ,master,xyz789,old_commit_hash
    - 状态: SUCCESS / FAILURE / BUILDING
       ↓
 9. 获取构建结果
-   - 提取 AAR 下载链接
+   - 提取 APK 下载链接
       ↓
-10. 如果有 --pack 参数（配置已在 Step 0e 收集）
-    └─ 执行 Step P2-P4 更新 App 工程
+10. 记录审计日志
+   - Write: 写入 logs/{date}.jsonl
       ↓
 11. 返回结果给用户
 ```
@@ -478,39 +263,18 @@ git config gui.encoding utf-8
 // 使用 Glob 工具搜索
 pattern: "**/*CCGR-native-beta.txt"
 
-// 使用 Bash 工具读取文件（保持原始编码）
-// ⚠️ 重要：不要用 Read 工具，它会改变文件编码！
-cat /tmp/FlutterBuild/QS_Android/CCGR-native-beta.txt
+// 使用 Read 工具读取
+file_path: /tmp/FlutterBuild/QS_Android/CCGR-native-beta.txt
 ```
 
 ### Step 4-5: 解析并更新模板
 
-**⚠️ 重要：使用 sed 直接修改文件，保持原始编码不被破坏！**
-
-```bash
-# 方法1：使用 sed 直接替换（推荐）
-# 格式: module,branch,old_commit,new_commit
-# 示例：将 tdxtoolutil 的 commit 从 82fc09a... 改为 eb00aa81...
-
-cd /tmp/FlutterBuild
-
-# 先用 grep 确认要修改的行
-grep "^tdxtoolutil," QS_Android/CCGR-native-beta.txt
-
-# 使用 sed 替换该行的 commit
-# 匹配格式：tdxtoolutil,分支名,旧commit,xxx
-sed -i "s/^tdxtoolutil,\([^,]*\),[^,]*/tdxtoolutil,\1,${NEW_COMMIT}/" \
-  QS_Android/CCGR-native-beta.txt
-
-# 验证修改结果
-grep "^tdxtoolutil," QS_Android/CCGR-native-beta.txt
+```javascript
+// 解析格式: module,branch,commit,old_commit
+// 使用 Edit 工具替换
+old_string: "tdxCore,master,abc123,old123"
+new_string: "tdxCore,master,new456,abc123"
 ```
-
-**⚠️ 编码保护原则：**
-1. **不要使用 Read 工具读取文件** - 它会改变编码
-2. **使用 Bash + cat/sed 处理文件** - 保持原始字节
-3. **只修改 ASCII 部分**（模块配置行），不动中文注释
-4. **提交前用 git diff 确认** 只改了预期的行
 
 ### Step 6: Git 提交
 
@@ -541,62 +305,310 @@ git config --global i18n.commitencoding utf-8
 GIT_AUTHOR_ENCODING=utf-8 GIT_COMMITTER_ENCODING=utf-8 git commit -m "更新 tdxCore"
 ```
 
-### Step 7-8: Jenkins 操作（多模块构建监控）
+### Step 7-9: Jenkins 操作（使用 session cookie + CRUMB，无需认证）
 
-**⚠️ 重要：多模块构建会触发多次，需要正确追踪每个构建编号！**
+#### ⚠️ 关键改进：多模块构建队列监控
+
+**问题根源**：Jenkins 触发返回的是 **queueId**（队列ID），不是 buildNumber。
+多模块触发时，每个返回不同的 queueId，需要分别监控。
+
+#### Step 7: 触发构建并获取 queueId
 
 ```bash
-# Step 1: 获取 session cookie 和 CRUMB
+# 获取 session cookie 和 CRUMB
 curl -s -c /tmp/jenkins_session.txt -b /tmp/jenkins_session.txt \
   "http://192.168.30.28:8080/" -o /dev/null
 
 CRUMB=$(curl -s -c /tmp/jenkins_session.txt -b /tmp/jenkins_session.txt \
   "http://192.168.30.28:8080/crumbIssuer/api/json" | grep -o '"crumb":"[^"]*"' | cut -d'"' -f4)
 
-# Step 2: 记录触发前的最新构建号
-LAST_BUILD_BEFORE=$(curl -s -b /tmp/jenkins_session.txt \
-  "http://192.168.30.28:8080/job/QS_Android/api/json" | \
-  grep -o '"lastBuild":{.*"number":[0-9]*' | grep -o '[0-9]*$')
+# ⚠️ 关键：使用 -i 获取响应头，提取 queueId
+# 触发成功返回 201 + Location: http://jenkins/queue/item/{queueId}/
+RESPONSE=$(curl -s -i -c /tmp/jenkins_session.txt -b /tmp/jenkins_session.txt \
+  -X POST \
+  -H "Jenkins-Crumb: $CRUMB" \
+  "http://192.168.30.28:8080/job/QS_Android/buildWithParameters?FILENAME=${FILENAME}&Module=${Module}&buildType=Android&VERSION=${VERSION}")
 
-echo "触发前最新构建: #$LAST_BUILD_BEFORE"
+# 提取 queueId（从 Location 头）
+QUEUE_URL=$(echo "$RESPONSE" | grep -i "^Location:" | sed 's/Location: //' | tr -d '\r')
+QUEUE_ID=$(echo "$QUEUE_URL" | grep -o 'item/[0-9]*' | cut -d'/' -f2)
 
-# Step 3: 触发多个模块构建
-for Module in tdxtoolutil tdxjyframingmodule; do
-  curl -s -c /tmp/jenkins_session.txt -b /tmp/jenkins_session.txt \
-    -X POST \
-    -H "Jenkins-Crumb: $CRUMB" \
-    "http://192.168.30.28:8080/job/QS_Android/buildWithParameters?FILENAME=${FILENAME}&Module=${Module}&buildType=Android&VERSION=${VERSION}"
-  echo "✅ ${Module} 构建已触发"
-done
+echo "✅ 触发成功: Module=${Module}, queueId=${QUEUE_ID}"
+```
 
-# Step 4: 等待构建启动并追踪编号
-sleep 15
+#### Step 8: 多构建状态监控（核心改进）
 
-# 获取触发后的构建列表（匹配参数）
-for i in $(seq 1 60); do
-  # 查询最近构建，匹配 Module 参数
-  for build_num in $(seq $((LAST_BUILD_BEFORE + 1)) $((LAST_BUILD_BEFORE + 10))); do
-    BUILD_INFO=$(curl -s -b /tmp/jenkins_session.txt \
-      "http://192.168.30.28:8080/job/QS_Android/${build_num}/api/json" 2>&1)
+```bash
+# ⚠️ 多模块场景：维护构建状态数组
+# 格式: module:queueId:status:buildNumber
 
-    if echo "$BUILD_INFO" | grep -q '"Module"'; then
-      MODULE_NAME=$(echo "$BUILD_INFO" | grep -o '"Module":"[^"]*"' | cut -d'"' -f4)
-      BUILD_RESULT=$(echo "$BUILD_INFO" | grep -o '"result":"[^"]*"' | cut -d'"' | head -1)
-      BUILDING=$(echo "$BUILD_INFO" | grep -o '"building":[^,]*' | cut -d':' -f2)
+BUILD_TRACKER=""  # 初始化构建追踪器
 
-      echo "构建 #${build_num} (${MODULE_NAME}): building=${BUILDING}, result=${BUILD_RESULT:-进行中}"
+# 函数：从 queueId 获取 buildNumber（修复版）
+get_build_from_queue() {
+  local queue_id=$1
+  local queue_info=$(curl -s -b /tmp/jenkins_session.txt \
+    "http://192.168.30.28:8080/queue/item/${queue_id}/api/json")
+
+  # 检查是否已开始执行
+  if echo "$queue_info" | grep -q '"executable"'; then
+    # ⚠️ 修复：直接从 executable.number 字段提取，不依赖 url 解析
+    # JSON 格式: {"executable":{"number":727,"url":"..."}}
+    local build_num=$(echo "$queue_info" | grep -o '"executable":{[^}]*"number":[0-9]*' | grep -o '[0-9]*$')
+    
+    # 备用方案：如果上面失败，从 url 提取
+    if [ -z "$build_num" ]; then
+      local build_url=$(echo "$queue_info" | grep -o '"url":"[^"]*"' | head -1 | cut -d'"' -f4)
+      build_num=$(echo "$build_url" | grep -o '[0-9]*$')
+    fi
+    
+    echo "$build_num"
+  else
+    # 还在队列中等待
+    echo "QUEUED"
+  fi
+}
+
+# 函数：检查单个构建状态
+check_build_status() {
+  local module=$1
+  local queue_id=$2
+  local build_num=$3
+
+  if [ "$build_num" = "QUEUED" ]; then
+    # 还在队列中，尝试获取 buildNumber
+    local new_build=$(get_build_from_queue "$queue_id")
+    if [ "$new_build" != "QUEUED" ]; then
+      echo "${module}:${queue_id}:BUILDING:${new_build}"
+    else
+      echo "${module}:${queue_id}:QUEUED:0"
+    fi
+  else
+    # 已有 buildNumber，查询执行状态
+    local build_info=$(curl -s -b /tmp/jenkins_session.txt \
+      "http://192.168.30.28:8080/job/QS_Android/${build_num}/api/json")
+    local result=$(echo "$build_info" | grep -o '"result":"[^"]*"' | cut -d'"' -f4)
+
+    if [ -z "$result" ] || [ "$result" = "null" ]; then
+      echo "${module}:${queue_id}:BUILDING:${build_num}"
+    else
+      echo "${module}:${queue_id}:${result}:${build_num}"
+    fi
+  fi
+}
+
+# 多模块轮询主循环
+# 初始化追踪器（假设触发后已记录）
+BUILD_TRACKER="tdxframework:101:QUEUED:0 tdxHQ:102:QUEUED:0 tdxhqgg:103:QUEUED:0"
+
+MAX_ITERATIONS=180  # 30分钟 = 180 * 10秒
+ITERATION=0
+
+while [ $ITERATION -lt $MAX_ITERATIONS ]; do
+  ITERATION=$((ITERATION + 1))
+
+  # 更新每个构建的状态
+  NEW_TRACKER=""
+  ALL_DONE=true
+
+  for entry in $BUILD_TRACKER; do
+    module=$(echo $entry | cut -d: -f1)
+    queue_id=$(echo $entry | cut -d: -f2)
+    status=$(echo $entry | cut -d: -f3)
+    build_num=$(echo $entry | cut -d: -f4)
+
+    new_entry=$(check_build_status "$module" "$queue_id" "$build_num")
+    NEW_TRACKER="$NEW_TRACKER $new_entry"
+
+    new_status=$(echo $new_entry | cut -d: -f3)
+    if [ "$new_status" != "SUCCESS" ] && [ "$new_status" != "FAILURE" ]; then
+      ALL_DONE=false
     fi
   done
 
-  sleep 30
+  BUILD_TRACKER="$NEW_TRACKER"
+
+  # 打印进度
+  echo "[$ITERATION/$MAX_ITERATIONS] 状态: $BUILD_TRACKER"
+
+  # 如果所有构建完成，退出循环
+  if [ "$ALL_DONE" = "true" ]; then
+    break
+  fi
+
+  sleep 10
+done
+
+# 输出最终结果（包含 Maven 下载地址）
+echo "══════════════════════════════════════════════════════════"
+echo "构建完成汇总:"
+
+# 收集成功的构建号
+SUCCESS_BUILDS=""
+
+for entry in $BUILD_TRACKER; do
+  module=$(echo $entry | cut -d: -f1)
+  status=$(echo $entry | cut -d: -f3)
+  build_num=$(echo $entry | cut -d: -f4)
+  
+  echo "  ${module}: ${status} (build #${build_num})"
+  
+  if [ "$status" = "SUCCESS" ]; then
+    SUCCESS_BUILDS="$SUCCESS_BUILDS $build_num"
+  fi
+done
+
+echo "══════════════════════════════════════════════════════════"
+
+# 获取 Maven 下载地址（从构建日志解析）
+if [ -n "$SUCCESS_BUILDS" ]; then
+  echo ""
+  echo "正在获取 Maven 发布地址..."
+  
+  for build_num in $SUCCESS_BUILDS; do
+    maven_info=$(get_maven_info "$build_num")
+    echo ""
+    echo "📦 构建 #${build_num}:"
+    echo "$maven_info"
+  done
+fi
+```
+
+#### 函数：获取 Maven 下载地址（从构建日志解析）
+
+**⚠️ 重要：AAR 发布到 Artifactory Maven 仓库，不是 Jenkins artifacts！**
+
+```bash
+# 从构建日志解析 Artifactory Maven 发布地址
+get_maven_url() {
+  local build_num=$1
+  
+  # 获取完整构建日志
+  local log_content=$(curl -s -b /tmp/jenkins_session.txt \
+    "http://192.168.30.28:8080/job/QS_Android/${build_num}/consoleText")
+  
+  # 解析 Artifactory 发布地址
+  # 格式: Deploying artifact: http://192.168.40.200:8081/artifactory/develop-snapshot-2026/tdx/android/aar/xxx/版本号/xxx.aar
+  
+  local maven_url=$(echo "$log_content" | grep -o 'Deploying artifact: http[^ ]*\.aar' | head -1 | sed 's/Deploying artifact: //')
+  
+  if [ -n "$maven_url" ]; then
+    echo "$maven_url"
+  else
+    echo "未找到 Maven 发布地址"
+  fi
+}
+
+# 获取完整的 Maven 信息（名称、版本号、下载地址）
+get_maven_info() {
+  local build_num=$1
+  
+  local log_content=$(curl -s -b /tmp/jenkins_session.txt \
+    "http://192.168.30.28:8080/job/QS_Android/${build_num}/consoleText")
+  
+  # 解析 artifactoryPublish 任务输出
+  # 格式: > Task :tdxframework:artifactoryPublish
+  #       [pool-5-thread-1] Deploying artifact: http://.../tdxframework_XNZQL2/4.5-2604140829/tdxframework_XNZQL2-4.5-2604140829.aar
+  
+  local module_name=$(echo "$log_content" | grep -o '> Task :[^:]*:artifactoryPublish' | cut -d':' -f3)
+  local maven_url=$(echo "$log_content" | grep -o 'Deploying artifact: http[^ ]*\.aar' | head -1 | sed 's/Deploying artifact: //')
+  
+  # 从 URL 提取版本号
+  # URL 格式: .../tdxframework_XNZQL2/4.5-2604140829/tdxframework_XNZQL2-4.5-2604140829.aar
+  local version=$(echo "$maven_url" | grep -o '/[0-9]\+-[0-9]\+/' | tr -d '/')
+  
+  echo "模块: ${module_name}"
+  echo "版本: ${version}"
+  echo "下载: ${maven_url}"
+}
+
+# 批量获取多个构建的 Maven 信息
+get_all_maven_info() {
+  local build_nums=$1  # 格式: "727 728 729"
+  
+  echo "═══════════════════════════════════════════════════════════════════"
+  echo "AAR 发布结果汇总:"
+  echo "═══════════════════════════════════════════════════════════════════"
+  
+  for build_num in $build_nums; do
+    info=$(get_maven_info "$build_num")
+    echo ""
+    echo "构建 #${build_num}:"
+    echo "$info"
+  done
+  
+  echo "═══════════════════════════════════════════════════════════════════"
+}
+```
+
+#### 输出示例（构建完成后）
+
+```
+═══════════════════════════════════════════════════════════════════
+AAR 发布结果汇总:
+═══════════════════════════════════════════════════════════════════
+
+构建 #727:
+模块: tdxframework
+版本: 4.5-2604140829
+下载: http://192.168.40.200:8081/artifactory/develop-snapshot-2026/tdx/android/aar/tdxframework_XNZQL2/4.5-2604140829/tdxframework_XNZQL2-4.5-2604140829.aar
+
+构建 #728:
+模块: tdxHQ
+版本: 4.5-2604140829
+下载: http://192.168.40.200:8081/artifactory/develop-snapshot-2026/tdx/android/aar/tdxhq_master-xnzq/4.5-2604140829/tdxhq_master-xnzq-4.5-2604140829.aar
+
+构建 #729:
+模块: tdxhqgg
+版本: 4.5-2604140829
+下载: http://192.168.40.200:8081/artifactory/develop-snapshot-2026/tdx/android/aar/tdxhqgg_XNZQL2/4.5-2604140829/tdxhqgg_XNZQL2-4.5-2604140829.aar
+
+═══════════════════════════════════════════════════════════════════
+```
+
+**⚠️ 注意：Jenkins artifacts API 不适用于 Maven 发布的 AAR，必须从构建日志解析！**
+
+#### 输出示例（构建完成后）
+
+```
+══════════════════════════════════════════════════════════
+构建完成汇总:
+  tdxframework: SUCCESS (build #145)
+    📦 下载: http://192.168.30.28:8080/job/QS_Android/145/artifact/output/tdxframework-4.5.aar
+  tdxHQ: SUCCESS (build #146)
+    📦 下载: http://192.168.30.28:8080/job/QS_Android/146/artifact/output/tdxHQ-4.5.aar
+  tdxhqgg: SUCCESS (build #147)
+    📦 下载: http://192.168.30.28:8080/job/QS_Android/147/artifact/output/tdxhqgg-4.5.aar
+══════════════════════════════════════════════════════════
+```
+
+#### 单模块简化版（向后兼容）
+
+```bash
+# 单模块场景：简化逻辑
+QUEUE_ID=$(curl -s -i -X POST -H "Jenkins-Crumb: $CRUMB" \
+  "...buildWithParameters?..." | grep -i "^Location:" | grep -o 'item/[0-9]*' | cut -d'/' -f2)
+
+# 等待队列 -> 执行
+while true; do
+  build_num=$(get_build_from_queue "$QUEUE_ID")
+  if [ "$build_num" != "QUEUED" ]; then
+    break
+  fi
+  sleep 5
+done
+
+# 轮询执行状态
+while true; do
+  status=$(curl -s "...job/QS_Android/${build_num}/api/json" | grep -o '"result":"[^"]*"' | cut -d'"' -f4)
+  if [ -n "$status" ] && [ "$status" != "null" ]; then
+    break
+  fi
+  sleep 10
 done
 ```
 
-**多模块构建监控正确做法：**
-1. 记录触发前的 `lastBuild` 编号
-2. 触发所有模块构建
-3. 扫描新创建的构建（编号 > lastBuild），匹配 Module 参数
-4. 分别追踪每个构建的状态
+**⚠️ 关键：VERSION 参数必须明确传递，不能为空！**
 
 ### Step 10: 审计日志
 
@@ -649,11 +661,10 @@ content: {
 
 模板文件名 → Jenkins Job 名称（从 configs/jenkins.yaml 读取）:
 
-| 模板文件 | Jenkins Job | 目录 |
-|---------|-------------|------|
-| CCGR-native-beta.txt | QS_Android-CCGR-build | QS_Android/ |
-| TDX-native-beta.txt | TDX_Android-build | TDX_Android/ |
-| SJZQ.txt | TdxFlutter-SJZQ-build | TdxFlutter/ |
+| 模板文件 | Jenkins Job |
+|---------|-------------|
+| CCGR-native-beta.txt | QS_Android-CCGR-build |
+| SJZQ.txt | TdxFlutter-SJZQ-build |
 
 ---
 
@@ -672,802 +683,191 @@ content: {
 
 ## 批量发布
 
-用户传入 records.json:
+### 支持的批量输入格式
+
+#### 格式1：直接粘贴模板内容（推荐）
+
+用户可直接粘贴模板文件内容，AI 自动解析：
+
+```
+XNZQ-native-beta.txt
+tdxframework XNZQL2 99655b57ddfad71da8c35cf16ca0ee08a7922445 4.5
+tdxHQ master-xnzq 5df3c336068dc43be81bdb1c50e791eaf8a90035 4.5
+tdxhqgg XNZQL2 9acc73b5d769524dfe4cd160acd29b5e55a8a1bb 4.5
+```
+
+**解析规则：**
+- 第一行：模板文件名（必须以 `.txt` 结尾）
+- 后续行：`module branch commit version`（空格分隔）
+- 支持注释行（以 `//` 或 `#` 开头）
+
+#### 格式2：records.json 文件
 
 ```json
 {
   "records": [
-    {"template_file": "CCGR-native-beta.txt", "module": "tdxCore", "branch": "master", "commit": "abc123"},
-    {"template_file": "CCGR-native-beta.txt", "module": "tdxTrade", "branch": "master", "commit": "def456"}
+    {"template_file": "CCGR-native-beta.txt", "module": "tdxCore", "branch": "master", "commit": "abc123", "version": "6.9.5"},
+    {"template_file": "CCGR-native-beta.txt", "module": "tdxTrade", "branch": "master", "commit": "def456", "version": "6.9.5"}
   ]
 }
 ```
 
-AI 逐条执行，汇总结果。
-
----
-
-## 仅打包流程（`--only-pack` 参数）
-
-**触发条件：** 命令带有 `--only-pack` 参数时，跳过 AAR 发布流程，直接执行打包。
-
-**适用场景：** AAR 已经发布到 Maven 仓库，只需要更新 App 工程版本号并打包 APK。
-
-### Step O1: 询问打包配置和模块版本
+#### 格式3：命令行参数（单模块）
 
 ```
-═════════════════════════════════════════════════════════════════
-📦 仅打包模式（AAR 已发布），请确认以下信息：
-═════════════════════════════════════════════════════════════════
-
-请回复以下信息：
-
-工程=AppCCGR        # 必填：AppCCGR / AppXNZQ_SDK / AppHBZQ
-分支=成长层新框架   # 必填：App 工程的分支名
-类型=Appbeta        # 必填：Appbeta 或 AppRelease 或 两者都更新
-定义ID=403          # 必填：TFS 构建定义 ID
-
-模块版本（每行一个，格式：模块名=版本号）：
-tdxCore=2.18.0-2504081234
-tdxtoolutil=2.18.0-2504081235
-
-💡 build.gradle 依赖格式示例：
-   compile(group: 'tdx.android.aar', name: 'tdxCore_master_2025', version: '2.18.0-2504081234', ext: 'aar')
-   更新时会匹配 name 中的模块名，替换 version 值
-
-═════════════════════════════════════════════════════════════════
+/tdx-publish HBZQ-native-beta-2026.txt tdxCore master 6af7a8a6 6.9.5
 ```
 
-### Step O2-O4: 执行打包流程
+### 批量执行策略
 
-**与 `--pack` 模式的 Step P2-P4 相同：**
-1. 克隆 App 工程指定分支
-2. 更新 build.gradle 中的 AAR 版本号
-3. Git 提交推送
+**⚠️ 多模块触发策略改进：**
 
-**多模块版本更新示例：**
-```bash
-# 用户输入：
-# tdxCore=2.18.0-2504081234
-# tdxtoolutil=2.18.0-2504081235
+| 策略 | 说明 | 适用场景 |
+|------|------|----------|
+| **并行触发** | 同时触发所有模块，记录 queueId，统一监控 | 推荐：效率最高 |
+| **串行触发** | 触发→等待完成→下一个 | 单模块或需要顺序控制 |
 
-# 解析并逐个更新
-sed -i "s/\(name: 'tdxCore[^']*', version: '\)[^']*'/\12.18.0-2504081234'/g" \
-  AppAndroid/${BUILD_TYPE}/app/build.gradle
-
-sed -i "s/\(name: 'tdxtoolutil[^']*', version: '\)[^']*'/\12.18.0-2504081235'/g" \
-  AppAndroid/${BUILD_TYPE}/app/build.gradle
-
-# 验证修改
-git diff AppAndroid/${BUILD_TYPE}/app/build.gradle
+**推荐流程（并行触发）：**
+```
+1. 解析批量输入 → 提取所有模块配置
+2. 并行触发所有模块 → 记录每个 queueId
+   ├── tdxframework → queueId=101
+   ├── tdxHQ → queueId=102
+   └── tdxhqgg → queueId=103
+3. 统一轮询监控 → 检查所有构建状态
+4. 汇总结果 → 输出每个模块的构建状态
 ```
 
-### Step O5-O6: 触发 TFS 构建
+### AI 执行指令
 
-**与 `--pack` 模式的 Step P5-P6 相同：**
-1. 使用 Node.js + axios-ntlm 触发构建
-2. 监控构建状态（带系统弹框提示）
-
----
-
-## 平台打包流程（`--pack` 参数）
-
-**触发条件：** 命令带有 `--pack` 参数时，AAR 发布成功后**立即询问**打包配置，一次完成全部流程。
-
-### Step P1: AAR 发布成功后执行打包流程
-
-**⚠️ 注意：打包配置已在 Step 0e 确认，直接使用保存的配置执行！**
-
-使用 Step 0e 保存的配置：
-- APP_REPO（工程名）
-- APP_BRANCH（分支名）
-- BUILD_TYPE（Appbeta/AppRelease/两者都更新）
-- DEFINITION_ID（构建定义ID）
-- 已发布的模块列表
-- AAR 版本号
-
-### Step P2: 解析用户回复并克隆工程
-
-```bash
-# 解析：APP_REPO, APP_BRANCH, BUILD_TYPE（Appbeta/AppRelease）
-
-git clone --single-branch --branch "${APP_BRANCH}" \
-  "http://${TFS_USER}:${TFS_PASSWORD}@192.168.40.200:8080/tfs/OpenSDK/_git/${APP_REPO}" \
-  /tmp/${APP_REPO}
-
-cd /tmp/${APP_REPO}
-git config core.quotepath false
-git config i18n.commitencoding utf-8
-```
-
-### Step P3: 更新 build.gradle 中的 AAR 版本
-
-**build.gradle 路径：** `AppAndroid/${BUILD_TYPE}/app/build.gradle`
-
-**依赖格式：**
-```groovy
-compile(group: 'tdx.android.aar', name: 'tdxCore_master_2025', version: '2.14-2508201123', ext: 'aar', changing: true)
-```
-
-**更新逻辑（使用 sed 保持编码）：**
-```bash
-# 单模块更新
-# 匹配 name: 'module*' 的行，替换 version
-sed -i "s/\(name: 'tdxCore[^']*', version: '\)[^']*'/\1${NEW_VERSION}'/g" \
-  AppAndroid/${BUILD_TYPE}/app/build.gradle
-
-# 多模块更新（每个模块单独指定版本）
-# 示例：tdxCore=2.18.0-2504081234, tdxtoolutil=2.18.0-2504081235
-sed -i "s/\(name: 'tdxCore[^']*', version: '\)[^']*'/\12.18.0-2504081234'/g" \
-  AppAndroid/${BUILD_TYPE}/app/build.gradle
-sed -i "s/\(name: 'tdxtoolutil[^']*', version: '\)[^']*'/\12.18.0-2504081235'/g" \
-  AppAndroid/${BUILD_TYPE}/app/build.gradle
-
-# 验证修改
-git diff AppAndroid/${BUILD_TYPE}/app/build.gradle
-```
-
-### Step P4: Git 提交推送
-
-```bash
-git add AppAndroid/${BUILD_TYPE}/app/build.gradle
-git commit -m "更新 ${MODULES} AAR 版本到 ${VERSION}"
-git push
-```
-
-### Step P5-P6: 触发 TFS 构建
-
-**⚠️ 重要：必须先完成 Step P2-P4（更新 build.gradle 并提交），再触发 TFS 构建！**
-
-**⚠️ 重要：TFS API 需要使用 Node.js + axios-ntlm 库才能正确传递 sourceBranch 参数！**
-
-#### 方案：创建临时 Node.js 脚本触发构建
-
-**Step P5-1: 检查并安装 axios-ntlm**
-
-```bash
-# 检查 axios-ntlm 是否已安装
-npm list axios-ntlm 2>/dev/null || npm install axios-ntlm --save-dev
-```
-
-**Step P5-2: 创建 TFS 构建脚本**
-
-使用 Write 工具创建临时脚本 `/tmp/tfs-build.js`：
-
-```javascript
-// 使用 Write 工具创建以下内容
-const { NtlmClient } = require('axios-ntlm');
-
-// 从命令行参数获取配置
-const TFS_URL = process.argv[2];       // TFS服务器URL
-const COLLECTION = process.argv[3];    // 集合名（OpenSDK）
-const PROJECT = process.argv[4];       // 工程名
-const USERNAME = process.argv[5];      // 用户名
-const PASSWORD = process.argv[6];      // 密码
-const DEFINITION_ID = parseInt(process.argv[7]); // 构建定义ID
-const BRANCH = process.argv[8];        // 分支名
-
-// 解析域名（如果用户名格式为 domain\username）
-let domain = '';
-let username = USERNAME;
-if (USERNAME.includes('\\')) {
-  const parts = USERNAME.split('\\');
-  domain = parts[0];
-  username = parts[1];
-}
-
-// 创建 NTLM 客户端
-const ntlmClient = NtlmClient({
-  username,
-  password: PASSWORD,
-  domain,
-  workstation: ''
-});
-
-// 构建请求体（关键：sourceBranch 参数）
-const buildRequest = {
-  definition: {
-    id: DEFINITION_ID
-  },
-  sourceBranch: BRANCH.startsWith('refs/heads/') ? BRANCH : `refs/heads/${BRANCH}`
-};
-
-// 尝试多种 API 版本和 URL 格式
-const urls = [
-  `${TFS_URL}/tfs/${COLLECTION}/${PROJECT}/_apis/build/builds?api-version=2.0`,
-  `${TFS_URL}/tfs/${COLLECTION}/${PROJECT}/_apis/build/builds?api-version=4.1`,
-  `${TFS_URL}/tfs/${COLLECTION}/${PROJECT}/_apis/build/builds?api-version=5.0`,
-  `${TFS_URL}/tfs/DefaultCollection/${PROJECT}/_apis/build/builds?api-version=2.0`,
-];
-
-async function triggerBuild() {
-  console.log(`触发构建: ${PROJECT}, 分支: ${BRANCH}, 定义ID: ${DEFINITION_ID}`);
-  console.log(`请求体: ${JSON.stringify(buildRequest)}`);
-
-  for (let i = 0; i < urls.length; i++) {
-    const url = urls[i];
-    console.log(`尝试 URL ${i + 1}: ${url}`);
-    try {
-      const response = await ntlmClient.post(url, buildRequest);
-      console.log(`✅ 成功!`);
-      console.log(`构建ID: ${response.data.id}`);
-      console.log(`构建号: ${response.data.buildNumber}`);
-      console.log(`状态: ${response.data.status}`);
-      console.log(`分支: ${response.data.sourceBranch}`);
-      console.log(`---SUCCESS---`);
-      return;
-    } catch (e) {
-      console.log(`失败: ${e.response?.status || e.message}`);
-    }
-  }
-  console.log(`❌ 所有 URL 都失败`);
-  console.log(`---FAILED---`);
-}
-
-triggerBuild().catch(e => console.error(e));
-```
-
-**Step P5-3: 执行脚本触发构建**
-
-```bash
-# 使用 Bash 工具执行脚本
-node /tmp/tfs-build.js \
-  "http://192.168.40.200:8080" \
-  "OpenSDK" \
-  "${APP_REPO}" \
-  "${TFS_USER}" \
-  "${TFS_PASSWORD}" \
-  "${DEFINITION_ID}" \
-  "${APP_BRANCH}"
-```
-
-**Step P5-4: 解析输出判断结果**
-
-脚本输出包含：
-- `---SUCCESS---` 表示成功触发
-- `构建ID: xxx` 用于后续状态查询
-- `构建号: xxx` 用于日志追踪
-- `分支: refs/heads/xxx` 确认实际构建分支
-- `---FAILED---` 表示触发失败
-
-**如果触发成功，继续监控构建状态：**
-
-**Step P6-1: 创建状态查询脚本**
-
-```javascript
-// 使用 Write 工具创建 /tmp/tfs-status.js
-const { NtlmClient } = require('axios-ntlm');
-
-const TFS_URL = process.argv[2];
-const COLLECTION = process.argv[3];
-const PROJECT = process.argv[4];
-const USERNAME = process.argv[5];
-const PASSWORD = process.argv[6];
-const BUILD_ID = process.argv[7];
-
-let domain = '';
-let username = USERNAME;
-if (USERNAME.includes('\\')) {
-  const parts = USERNAME.split('\\');
-  domain = parts[0];
-  username = parts[1];
-}
-
-const ntlmClient = NtlmClient({ username, password: PASSWORD, domain, workstation: '' });
-
-const urls = [
-  `${TFS_URL}/tfs/${COLLECTION}/${PROJECT}/_apis/build/builds/${BUILD_ID}?api-version=5.0`,
-  `${TFS_URL}/tfs/DefaultCollection/${PROJECT}/_apis/build/builds/${BUILD_ID}?api-version=5.0`,
-];
-
-async function getStatus() {
-  for (const url of urls) {
-    try {
-      const response = await ntlmClient.get(url);
-      const data = response.data;
-      console.log(`状态: ${data.status}`);
-      console.log(`结果: ${data.result || '进行中'}`);
-      console.log(`构建号: ${data.buildNumber}`);
-      console.log(`分支: ${data.sourceBranch}`);
-      if (data.status === 'completed') {
-        console.log(`---COMPLETED---`);
-      } else {
-        console.log(`---IN_PROGRESS---`);
-      }
-      return;
-    } catch (e) {
-      console.log(`尝试失败: ${e.message}`);
-    }
-  }
-  console.log(`---FAILED---`);
-}
-
-getStatus().catch(e => console.error(e));
-```
-
-**Step P6-2: 执行状态查询**
-
-```bash
-# 使用 Bash 工具执行脚本
-node /tmp/tfs-status.js \
-  "http://192.168.40.200:8080" \
-  "OpenSDK" \
-  "${APP_REPO}" \
-  "${TFS_USER}" \
-  "${TFS_PASSWORD}" \
-  "${BUILD_ID}"
-
-# 等待构建完成（循环查询）
-for i in $(seq 1 60); do
-  OUTPUT=$(node /tmp/tfs-status.js \
-    "http://192.168.40.200:8080" "OpenSDK" "${APP_REPO}" \
-    "${TFS_USER}" "${TFS_PASSWORD}" "${BUILD_ID}" 2>&1)
-
-  echo "$OUTPUT"
-
-  if echo "$OUTPUT" | grep -q "COMPLETED"; then
-    RESULT=$(echo "$OUTPUT" | grep "结果:" | cut -d':' -f2 | tr -d ' ')
-    echo "构建完成: $RESULT"
-    break
-  fi
-  sleep 30
-done
-```
-
-**Step P6-3: 构建监控（带系统弹框提示）**
-
-**⚠️ 创建完整监控脚本（支持弹框提示）：**
-
-```javascript
-// 使用 Write 工具创建 tfs-poll.js
-const { NtlmClient } = require('axios-ntlm');
-const { exec } = require('child_process');
-
-const TFS_URL = process.argv[2];
-const COLLECTION = process.argv[3];
-const PROJECT = process.argv[4];
-const USERNAME = process.argv[5];
-const PASSWORD = process.argv[6];
-const BUILD_ID = process.argv[7];
-const POLL_INTERVAL = parseInt(process.argv[8]) || 30000;
-
-let domain = '', username = USERNAME;
-if (USERNAME.includes('\\')) {
-  const parts = USERNAME.split('\\');
-  domain = parts[0];
-  username = parts[1];
-}
-
-const ntlmClient = NtlmClient({ username, password: PASSWORD, domain, workstation: '' });
-
-// Windows 弹框 (使用 mshta)
-function showAlert(title, message) {
-  const cleanMsg = message.replace(/[\r\n]/g, ' ').replace(/"/g, "'");
-  const cleanTitle = title.replace(/"/g, "'");
-  exec(`mshta vbscript:Execute("msgbox \\"${cleanMsg}\\",64,\\"${cleanTitle}\\"(window.close)")`);
-}
-
-// 提示音
-function beep(success) {
-  if (success) {
-    exec('powershell -Command "[console]::Beep(1000, 300); [console]::Beep(1500, 300)"');
-  } else {
-    exec('powershell -Command "[console]::Beep(300, 500)"');
-  }
-}
-
-async function checkStatus() {
-  const urls = [
-    `${TFS_URL}/tfs/${COLLECTION}/${PROJECT}/_apis/build/builds/${BUILD_ID}?api-version=2.0`,
-    `${TFS_URL}/tfs/DefaultCollection/${PROJECT}/_apis/build/builds/${BUILD_ID}?api-version=2.0`,
-  ];
-  for (const url of urls) {
-    try {
-      return (await ntlmClient.get(url)).data;
-    } catch (e) {}
-  }
-  return null;
-}
-
-async function monitor() {
-  console.log(`监控构建 #${BUILD_ID}...`);
-  let startTime = Date.now();
-
-  while (true) {
-    const data = await checkStatus();
-    if (!data) {
-      console.log('无法获取状态，重试...');
-      await new Promise(r => setTimeout(r, POLL_INTERVAL));
-      continue;
-    }
-
-    const elapsed = Math.floor((Date.now() - startTime) / 1000);
-    const mins = Math.floor(elapsed / 60), secs = elapsed % 60;
-    console.log(`[${new Date().toLocaleTimeString()}] ${data.status} | ${data.result || 'running'} | ${mins}m${secs}s`);
-
-    if (data.status === 'completed') {
-      const isSuccess = data.result === 'succeeded';
-      const branch = (data.sourceBranch || '').replace('refs/heads/', '');
-
-      console.log(isSuccess ? '\n✅ 构建成功!' : '\n❌ 构建失败!');
-      console.log(`构建号: ${data.buildNumber}, 分支: ${branch}, 用时: ${mins}m${secs}s`);
-
-      // 弹框提示
-      showAlert(isSuccess ? 'TFS Build Success' : 'TFS Build Failed',
-        `Build ${data.buildNumber} ${data.result}. Branch: ${branch}. Time: ${mins}m${secs}s`);
-      beep(isSuccess);
-
-      process.exit(isSuccess ? 0 : 1);
-    }
-    await new Promise(r => setTimeout(r, POLL_INTERVAL));
-  }
-}
-monitor().catch(e => { console.error('错误:', e.message); process.exit(1); });
-```
-
-**执行监控脚本：**
-
-```bash
-# 后台运行监控（30秒轮询）
-node tfs-poll.js \
-  "http://192.168.40.200:8080" \
-  "OpenSDK" \
-  "${APP_REPO}" \
-  "${TFS_USER}" \
-  "${TFS_PASSWORD}" \
-  "${BUILD_ID}" \
-  30000
-
-# 或在技能目录中运行
-cd ~/.agents/skills/tdx-publish
-node tfs-poll.js "http://192.168.40.200:8080" "OpenSDK" "AppCCGR" "${TFS_USER}" "${TFS_PASSWORD}" "55167" 30000
-```
-
-**监控输出示例：**
-```
-监控构建 #55167...
-[08:15:30] inProgress | running | 0m15s
-[08:16:00] inProgress | running | 0m45s
-[08:16:30] completed | succeeded | 1m15s
-
-✅ 构建成功!
-构建号: 20260408.1, 分支: 成长层新框架, 用时: 1m15s
-```
-
-**⚠️ 构建完成后会自动弹出系统对话框提示！**
-
-**获取构建定义列表（验证配置）：**
-
-**创建定义列表查询脚本：**
-
-```javascript
-// 使用 Write 工具创建 /tmp/tfs-definitions.js
-const { NtlmClient } = require('axios-ntlm');
-
-const TFS_URL = process.argv[2];
-const COLLECTION = process.argv[3];
-const PROJECT = process.argv[4];
-const USERNAME = process.argv[5];
-const PASSWORD = process.argv[6];
-
-let domain = '';
-let username = USERNAME;
-if (USERNAME.includes('\\')) {
-  const parts = USERNAME.split('\\');
-  domain = parts[0];
-  username = parts[1];
-}
-
-const ntlmClient = NtlmClient({ username, password: PASSWORD, domain, workstation: '' });
-
-const urls = [
-  `${TFS_URL}/tfs/${COLLECTION}/${PROJECT}/_apis/build/definitions?api-version=2.0`,
-  `${TFS_URL}/tfs/${COLLECTION}/${PROJECT}/_apis/build/definitions?api-version=4.1`,
-  `${TFS_URL}/tfs/DefaultCollection/${PROJECT}/_apis/build/definitions?api-version=2.0`,
-];
-
-async function getDefinitions() {
-  for (const url of urls) {
-    try {
-      const response = await ntlmClient.get(url);
-      if (response.data.value) {
-        console.log(`=== ${PROJECT} 构建定义 ===`);
-        for (const def of response.data.value) {
-          console.log(`ID: ${def.id}, 名称: ${def.name}`);
-        }
-        console.log(`---SUCCESS---`);
-        return;
-      }
-    } catch (e) {
-      console.log(`尝试失败: ${e.message}`);
-    }
-  }
-  console.log(`---FAILED---`);
-}
-
-getDefinitions().catch(e => console.error(e));
-```
-
-```bash
-# 执行脚本获取构建定义列表
-node /tmp/tfs-definitions.js \
-  "http://192.168.40.200:8080" \
-  "OpenSDK" \
-  "${APP_REPO}" \
-  "${TFS_USER}" \
-  "${TFS_PASSWORD}"
-```
-
-**已知的构建定义默认分支：**
-
-| 定义ID | 名称 | 默认分支 |
-|--------|------|----------|
-| 403 | 长城国瑞_Android_Beta | refs/heads/master |
-| 404 | 长城国瑞_Android_Release | refs/heads/master |
-
-**⚠️ 关键点：**
-1. **必须使用 axios-ntlm 库**，curl 不支持 NTLM + sourceBranch 组合
-2. sourceBranch 格式：`refs/heads/分支名` 或直接传分支名
-3. 尝试多种 API 版本（2.0, 4.1, 5.0）
-4. 集合名称优先使用 `OpenSDK`，备选 `DefaultCollection`
-
-### Step P7: 获取 APK 下载链接
-
-**使用 Node.js 获取构建产物：**
-
-```javascript
-// tfs-artifacts.js - 获取构建产物
-const { NtlmClient } = require('axios-ntlm');
-
-const TFS_URL = process.argv[2];
-const COLLECTION = process.argv[3];
-const PROJECT = process.argv[4];
-const USERNAME = process.argv[5];
-const PASSWORD = process.argv[6];
-const BUILD_ID = process.argv[7];
-
-let domain = '';
-let username = USERNAME;
-if (USERNAME.includes('\\')) {
-  const parts = USERNAME.split('\\');
-  domain = parts[0];
-  username = parts[1];
-}
-
-const ntlmClient = NtlmClient({ username, password: PASSWORD, domain, workstation: '' });
-
-const urls = [
-  `${TFS_URL}/tfs/${COLLECTION}/${PROJECT}/_apis/build/builds/${BUILD_ID}/artifacts?api-version=5.0`,
-  `${TFS_URL}/tfs/DefaultCollection/${PROJECT}/_apis/build/builds/${BUILD_ID}/artifacts?api-version=5.0`,
-];
-
-async function getArtifacts() {
-  for (const url of urls) {
-    try {
-      const response = await ntlmClient.get(url);
-      if (response.data.value && response.data.value.length > 0) {
-        const artifact = response.data.value[0];
-        console.log(`产物名称: ${artifact.name}`);
-        console.log(`下载链接: ${artifact.resource.downloadUrl}`);
-        console.log(`---SUCCESS---`);
-        return;
-      }
-    } catch (e) {
-      console.log(`尝试失败: ${e.message}`);
-    }
-  }
-  console.log(`---FAILED---`);
-}
-
-getArtifacts().catch(e => console.error(e));
-```
-
-```bash
-# 执行脚本获取 APK 下载链接
-node /tmp/tfs-artifacts.js \
-  "http://192.168.40.200:8080" \
-  "OpenSDK" \
-  "${APP_REPO}" \
-  "${TFS_USER}" \
-  "${TFS_PASSWORD}" \
-  "${BUILD_ID}"
-```
-
-### Step P8: 返回结果
+当检测到多模块输入时：
 
 ```
-═════════════════════════════════════════════════════════════════
-✅ 打包完成！
-
-📌 构建信息：
-   • 工程：${APP_REPO}
-   • 分支：${APP_BRANCH}
-   • 类型：${BUILD_TYPE}
-   • 构建号：#${BUILD_NUMBER}
-   • 状态：${RESULT}
-
-📦 APK 下载：
-   ${APK_URL}
-
-═════════════════════════════════════════════════════════════════
+1. 识别模板文件名和模块列表
+2. 逐个触发 Jenkins（使用 Bash 并行或快速串行）
+3. 每次触发后立即提取 queueId
+4. 维护 BUILD_TRACKER 数组
+5. 统一轮询直到所有完成
+6. 汇总输出结果
+7. ⚠️ 更新使用频率统计到 logs/usage-stats.json
 ```
 
 ---
 
-## TFS Build API 参考
+## 使用频率学习机制
 
-| 操作 | API | 方法 | 认证 |
-|------|-----|------|------|
-| 获取构建定义 | `/_apis/build/definitions` | GET | NTLM |
-| 触发构建 | `/_apis/build/builds` | POST | NTLM |
-| 查询状态 | `/_apis/build/builds/{id}` | GET | NTLM |
-| 获取产物 | `/_apis/build/builds/{id}/artifacts` | GET | NTLM |
+### 学习原理
 
-**⚠️ 重要：必须使用 Node.js + axios-ntlm 库，curl 不支持 sourceBranch 参数！**
+每次执行后，技能会记录使用频率，动态调整示例排序：
 
-**触发构建请求体：**
+**记录内容：**
+- 模板文件名使用次数
+- 模块名使用次数
+- 最近使用时间
+
+### 学习触发时机
+
+| 触发点 | 操作 |
+|--------|------|
+| 构建成功 | 更新模板文件、模块的使用计数 |
+| 执行结束 | 写入 `logs/usage-stats.json` |
+
+### 统计文件格式
+
+`logs/usage-stats.json`:
 ```json
 {
-  "definition": { "id": 123 },
-  "sourceBranch": "refs/heads/分支名"
+  "template_files": {
+    "XNZQ-native-beta.txt": {"count": 15, "last_used": "2026-04-14"},
+    "HBZQ-native-beta-2026.txt": {"count": 10, "last_used": "2026-04-10"},
+    "CCGR-native-beta.txt": {"count": 5, "last_used": "2026-04-08"}
+  },
+  "modules": {
+    "tdxframework": {"count": 20, "last_used": "2026-04-14"},
+    "tdxHQ": {"count": 18, "last_used": "2026-04-14"},
+    "tdxCore": {"count": 12, "last_used": "2026-04-10"},
+    "tdxhqgg": {"count": 8, "last_used": "2026-04-14"}
+  },
+  "combinations": {
+    "XNZQ-native-beta.txt+tdxframework": {"count": 10},
+    "XNZQ-native-beta.txt+tdxHQ": {"count": 8}
+  }
 }
 ```
 
-**构建状态值：** `inProgress` → `completed`
-**构建结果值：** `succeeded` / `failed` / `canceled`
+### AI 动态示例生成
 
----
+**每次触发时，AI 应按频率排序示例：**
 
-## 已知工程构建定义映射
+```
+# 高频使用示例（自动推荐）
+/tdx-publish XNZQ-native-beta.txt tdxframework XNZQL2 <commit> 4.5
+/tdx-publish XNZQ-native-beta.txt tdxHQ master-xnzq <commit> 4.5
 
-| 工程 | 构建定义 | ID | 平台 |
-|------|----------|-----|------|
-| AppCCGR | 长城国瑞_Android_Beta | 403 | Android |
-| AppCCGR | 长城国瑞_Android_Release | 404 | Android |
-| AppCCGR | 长城国瑞_IOS_Beta | 405 | iOS |
-| AppCCGR | 长城国瑞_IOS_Release | 406 | iOS |
-| AppXNZQ_SDK | 西南SDK版本_Android_Beta | 382 | Android |
-| AppXNZQ_SDK | 西南SDK版本_IOS_Beta | 384 | iOS |
-| AppHBZQ | 华宝证券_IOS_Release | 121 | iOS |
-| AppHBZQ | 华宝证券_IOS_Beta | 122 | iOS |
-| AppHBZQ | 华宝证券_IOS_Beta_noclear | 123 | iOS |
-| AppHBZQ | 华宝证券_IOS_Release_noclear | 124 | iOS |
-| AppHBZQ | 华宝证券_Android_Beta | 125 | Android |
-| AppHBZQ | 华宝证券_Android_Release | 126 | Android |
+# 或批量（高频组合）
+XNZQ-native-beta.txt
+tdxframework XNZQL2 <commit> 4.5
+tdxHQ master-xnzq <commit> 4.5
+tdxhqgg XNZQL2 <commit> 4.5
+```
 
-**⚠️ 如果工程不在映射表中，使用 Node.js 获取：**
+### 学习执行指令
+
 ```bash
-# 创建临时脚本获取构建定义列表
-node /tmp/tfs-definitions.js \
-  "http://192.168.40.200:8080" \
-  "OpenSDK" \
-  "${APP_REPO}" \
-  "${TFS_USER}" \
-  "${TFS_PASSWORD}"
+# Step 11: 更新使用统计（构建成功后执行）
+STATS_FILE="logs/usage-stats.json"
+
+# 如果文件不存在，创建初始结构
+if [ ! -f "$STATS_FILE" ]; then
+  echo '{"template_files":{}, "modules":{}, "combinations":{}}' > "$STATS_FILE"
+fi
+
+# 使用 jq 更新统计（如果可用）
+# 或使用简单的方式追加到审计日志
 ```
+
+### 示例展示策略
+
+**当用户询问"如何使用"或触发技能时：**
+
+1. **检查 `logs/usage-stats.json` 是否存在**
+2. **按 count 降序排列模板文件和模块**
+3. **生成高频示例展示给用户**
+4. **首次使用时展示默认示例**
 
 ---
 
-## 完整执行流程图
+## 常用示例（动态区域）
 
-### 模式1-4：AAR 发布流程
+> ⚠️ 此区域由学习机制动态更新，手动编辑可能被覆盖
 
-```
-/tdx-publish HBZQ.txt tdxCore master 6af7a8a6 6.9.5 --pack
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│  Step 0: 前置检查                        │
-│  • 检测凭据（TFS_USER/PASSWORD）         │
-│  • 验证 Git / Jenkins 连接               │
-│  • 检测 Node.js 环境（--pack 必需）      │
-│  • 如果有 --pack → 一次性确认打包配置：   │
-│    工程、分支、Appbeta/AppRelease、定义ID │
-└─────────────────────────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│  Step 1-6: AAR 发布                      │
-│  • 克隆 FlutterBuild                     │
-│  • 更新模板文件 commit                   │
-│  • Git 提交推送                          │
-└─────────────────────────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│  Step 7-8: Jenkins 构建（多模块）         │
-│  • 记录触发前的 lastBuild 编号           │
-│  • 触发所有模块构建                      │
-│  • 扫描新构建，匹配 Module 参数          │
-│  • 分别追踪每个构建状态                  │
-└─────────────────────────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│  Step 9: 获取构建结果                    │
-│  • 从 Jenkins 日志提取 AAR 版本号        │
-│  • 返回 AAR 下载链接                     │
-└─────────────────────────────────────────┘
-                    │
-                    ▼
-        ┌───────────┴───────────┐
-        │   有 --pack 参数？     │
-        └───────────┬───────────┘
-              是 │
-                 ▼
-┌─────────────────────────────────────────┐
-│  Step P2-P4: 更新 App 工程（重要！）      │
-│  ⚠️ 必须先更新 build.gradle 再触发构建   │
-│  • 克隆 App 工程（指定分支）             │
-│  • 更新 build.gradle 中的 AAR 版本       │
-│  • Git 提交推送                          │
-└─────────────────────────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│  Step P5-P6: 触发 TFS 构建               │
-│  • 使用 Node.js + axios-ntlm 库          │
-│  • 创建临时脚本触发构建（支持指定分支）  │
-│  • 轮询构建状态等待完成                  │
-└─────────────────────────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│  ✅ 完成！                               │
-│  • AAR 已发布到 Maven 仓库               │
-│  • build.gradle 已更新并提交             │
-│  • TFS 构建已触发（或提供手动链接）       │
-└─────────────────────────────────────────┘
-```
+### 高频模板文件
 
-### 模式5：仅打包流程（`--only-pack`）
+| 模板文件 | 使用次数 | 最近使用 |
+|---------|---------|----------|
+| XNZQ-native-beta.txt | 15 | 2026-04-14 |
+| HBZQ-native-beta-2026.txt | 10 | 2026-04-10 |
+
+### 高频模块
+
+| 模块 | 使用次数 | 最近使用 |
+|------|---------|----------|
+| tdxframework | 20 | 2026-04-14 |
+| tdxHQ | 18 | 2026-04-14 |
+| tdxhqgg | 8 | 2026-04-14 |
+
+### 快速使用示例
 
 ```
-/tdx-publish --only-pack
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│  Step 0: 前置检查                        │
-│  • 检测凭据（TFS_USER/PASSWORD）         │
-│  • 验证 Git 连接                         │
-│  • 检测 Node.js 环境                     │
-└─────────────────────────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│  Step O1: 询问打包配置                   │
-│  • 工程、分支、类型、定义ID              │
-│  • 模块名和已发布的 AAR 版本号           │
-└─────────────────────────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│  Step O2-O4: 更新 App 工程               │
-│  • 克隆 App 工程（指定分支）             │
-│  • 更新 build.gradle 中的 AAR 版本       │
-│  • Git 提交推送                          │
-└─────────────────────────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│  Step O5-O6: 触发 TFS 构建               │
-│  • 使用 Node.js + axios-ntlm 库          │
-│  • 创建临时脚本触发构建（支持指定分支）  │
-│  • 轮询构建状态等待完成                  │
-│  • 系统弹框提示构建结果                  │
-└─────────────────────────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│  ✅ 完成！                               │
-│  • build.gradle 已更新并提交             │
-│  • APK 构建完成                          │
-└─────────────────────────────────────────┘
-```
+# 单模块发布（高频）
+/tdx-publish XNZQ-native-beta.txt tdxframework XNZQL2 abc123def 4.5
 
-**⚠️ 关键流程顺序：**
-- `--pack` 模式：AAR 发布 → 更新 build.gradle → TFS 构建
-- `--only-pack` 模式：询问配置 → 更新 build.gradle → TFS 构建
+# 批量发布（高频组合）
+XNZQ-native-beta.txt
+tdxframework XNZQL2 99655b57ddfad71da8c35cf16ca0ee08a7922445 4.5
+tdxHQ master-xnzq 5df3c336068dc43be81bdb1c50e791eaf8a90035 4.5
+tdxhqgg XNZQL2 9acc73b5d769524dfe4cd160acd29b5e55a8a1bb 4.5
+```
 
 ---
 
@@ -1499,24 +899,15 @@ npx skills add https://github.com/your-org/tdx-publish-skill --skill tdx-publish
 |--------|------|
 | 发布 AAR、发布模块 | 单模块发布 |
 | 批量发布、批量构建 | 批量发布 |
-| 打包 APK、编译 APK | 仅打包（`--only-pack`） |
-| AAR + 打包 | 发布并打包（`--pack`） |
 | 检查凭据 | 检测凭据配置 |
 
 ---
 
-> **更新日期**: 2026-04-08
+> **更新日期**: 2026-04-14
 > **类型**: prompt（纯 Skill）
+> **改进版本**: v2.1
 > **最近更新**:
-> - 融合打包功能，新增 `--only-pack` 参数（模式5：仅打包 APK）
-> - 触发词添加"打包APK"、"编译APK"
-> - 更新执行模式说明（共5种模式）
-> - 支持完整的打包流程监控（系统弹框提示）
-> - 修复多模块 Jenkins 构建监控逻辑（记录触发前 lastBuild，扫描新构建匹配参数）
-> - 修正 `--pack` 模式流程顺序（先更新 build.gradle 再触发 TFS 构建）
-> - Step 0e 增加一次性确认：工程、分支、Appbeta/AppRelease、构建定义ID
-> - **TFS 构建触发改用 Node.js + axios-ntlm**（解决 curl 无法传递 sourceBranch 的问题）
-> - 添加 Step 0d 检测 Node.js 环境（TFS 打包必需）
-> - 添加 tfs-build.js、tfs-status.js、tfs-definitions.js、tfs-artifacts.js 脚本模板
-> - 更新构建定义映射表（AppCCGR、AppXNZQ_SDK、AppHBZQ）
-> - **支持 TDX_Android 目录模板文件**（与 QS_Android 流程相同）
+> - 修复 queueId → buildNumber 转换逻辑（直接从 executable.number 字段提取）
+> - 修复下载地址获取：AAR 发布到 Artifactory Maven 仓库，从构建日志解析（不是 Jenkins artifacts）
+> - 新增 get_maven_url/get_maven_info 函数从 consoleText 解析发布地址
+> - 输出包含模块名、版本号、Maven 下载地址完整信息
