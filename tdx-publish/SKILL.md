@@ -150,13 +150,13 @@ git --version
 
 | 参数 | 必填 | 说明 |
 |------|------|------|
-| template_file | **是** | 模板文件名，如 `HBZQ-native-beta-2026.txt` |
+| template_file | **是** | 模板文件名，如 `HBZQ-native-beta-2026`（**注意：触发 Jenkins 时请勿携带 .txt 后缀**） |
 | module | 是 | 模块名称，如 tdxCore、tdxHQ、tdxframework |
 | branch | 是 | Git 分支名 |
 | commit | 是 | 构建使用的 commit hash（至少7位） |
 | version | **是** | 版本号，如 `6.9.5`，**必填！为空会导致发布到 tmp 仓库** |
 
-**⚠️ 重要：VERSION 参数必填，否则构建产物会发布到 `develop-snapshot-2026-tmp` 临时仓库！**
+**⚠️ 重要：FILENAME 参数在触发 Jenkins 构建时应不带 .txt 后缀，Jenkins 脚本会自动补全。**
 
 **Jenkins Module 可选值：**
 ```
@@ -324,10 +324,11 @@ CRUMB=$(curl -s -c /tmp/jenkins_session.txt -b /tmp/jenkins_session.txt \
 
 # ⚠️ 关键：使用 -i 获取响应头，提取 queueId
 # 触发成功返回 201 + Location: http://jenkins/queue/item/{queueId}/
+CLEAN_FILENAME=$(echo "${FILENAME}" | sed 's/\.txt$//')
 RESPONSE=$(curl -s -i -c /tmp/jenkins_session.txt -b /tmp/jenkins_session.txt \
   -X POST \
   -H "Jenkins-Crumb: $CRUMB" \
-  "http://192.168.30.28:8080/job/QS_Android/buildWithParameters?FILENAME=${FILENAME}&Module=${Module}&buildType=Android&VERSION=${VERSION}")
+  "http://192.168.30.28:8080/job/QS_Android/buildWithParameters?FILENAME=${CLEAN_FILENAME}&Module=${Module}&buildType=Android&VERSION=${VERSION}")
 
 # 提取 queueId（从 Location 头）
 QUEUE_URL=$(echo "$RESPONSE" | grep -i "^Location:" | sed 's/Location: //' | tr -d '\r')
