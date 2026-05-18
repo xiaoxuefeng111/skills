@@ -1,0 +1,13 @@
+{
+  "name": "android-stability-check",
+  "slashCommand": "android-stability-check",
+  "description": "Android 稳定性巡检工具 - 自动执行代码同步、Monkey 压力测试、日志异常分析，并将结果同步到腾讯文档和企业微信群。支持多项目、多包名参数化执行。触发词：\"稳定性巡检\"、\"Monkey测试\"、\"android check\"、\"巡检\"。",
+  "category": "development",
+  "compatibleProviders": "all",
+  "type": "prompt",
+  "promptTemplate": "见 skill/SKILL.md 文件",
+  "systemPromptAddition": "作为 Android 稳定性巡检助手，按 SKILL.md 流程执行：git 同步 → Monkey 测试 → 日志分析 → 腾讯文档报告 → 企微通知。",
+  "tags": "android,monkey,stability,test,adb,tencent-doc,wecom",
+  "author": "architect",
+  "version": "1.0"
+}
