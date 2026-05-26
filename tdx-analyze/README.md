@@ -6,6 +6,7 @@
 - 用户只需要输入 `/tdx-analyze + 问题`
 - 不需要先手动判断该走启动排查、模块归属、调用链、影响分析还是常见问题排查
 - 技能会先做一次统一首轮分析，再给出结构化结果
+- 当用户**明确要求画图**时，还可以追加输出 **Mermaid 调用链 / 页面跳转图**
 
 ---
 
@@ -32,6 +33,7 @@ skills/
   tdx-analyze/
     SKILL.md
     README.md
+    skill-config.json
     templates/
       tdx-analyze.project.example.md
 ```
@@ -48,6 +50,7 @@ skills/
     tdx-analyze/
       SKILL.md
       README.md
+      skill-config.json
       templates/
         tdx-analyze.project.example.md
   tdx-analyze.project.md
@@ -94,6 +97,52 @@ skills/
 ```
 
 建议每个技能一个独立目录，不要把多个技能文件混在同一个目录里。
+
+---
+
+## Mermaid 调用链 / 页面跳转图支持
+
+第一版图形输出规则如下：
+
+- **仅当用户明确要求画图**时才输出 Mermaid
+- 当前**只支持**：
+  - 调用链图
+  - 页面跳转图
+- 当前**不支持**：
+  - 整个项目知识图谱
+  - 模块依赖全景图
+  - 交互式图谱
+
+### 触发示例
+
+```text
+/tdx-analyze 用 Mermaid 画一下 Xxx 入口到 XxxPage 的调用链
+/tdx-analyze 帮我画这个页面跳转图
+/tdx-analyze 给我一张 Mermaid 调用链图
+```
+
+### 输出规则
+
+- 保留原来的 7 段文字分析
+- Mermaid 图放在最后追加
+- 固定使用 `graph TD`
+- 高置信边用 `-->`
+- 低置信边用 `-.->`
+- 证据太弱时，不强行画图
+
+### 示例输出
+
+```markdown
+## Mermaid 调用链图
+```mermaid
+graph TD
+  Entry[入口]
+  Router[路由处理]
+  Page[目标页面]
+  Entry --> Router
+  Router -.-> Page
+```
+```
 
 ---
 
@@ -148,6 +197,7 @@ skills/
 /tdx-analyze 从启动到 XxxPage 的调用链是什么
 /tdx-analyze Xxx 改动会影响哪些模块或入口
 /tdx-analyze 为什么这个页面没展示出来
+/tdx-analyze 用 Mermaid 画一下 Xxx 入口到 XxxPage 的调用链
 ```
 
 ---
@@ -163,10 +213,13 @@ skills/
 6. 影响范围
 7. 下一步建议
 
+如果触发了 Mermaid 图模式，并且证据足够或部分足够，则在最后追加 Mermaid 图块。
+
 这样可以明确区分：
 - 已证实的事实
 - 方向性较强但证据还不完整的推断
 - 下一步还需要补查什么
+- 哪些关系可以被可视化输出
 
 ---
 
@@ -175,6 +228,7 @@ skills/
 - 把 `SKILL.md` 当成技能行为规范
 - 把 `README.md` 当成团队使用说明
 - 把 `templates/tdx-analyze.project.example.md` 当成新工程接入模板
+- 把 `skill-config.json` 当成仓库安装和检索元数据
 - 不要把某个具体工程的私有事实直接写死进技能仓库
 
 ---
@@ -183,4 +237,5 @@ skills/
 
 - `SKILL.md`：技能主定义
 - `README.md`：使用说明
+- `skill-config.json`：技能元信息
 - `templates/tdx-analyze.project.example.md`：项目画像模板

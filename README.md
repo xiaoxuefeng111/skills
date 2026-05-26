@@ -73,6 +73,7 @@ TDX 项目统一首轮分析技能。
 - 优先读取 `tdx-analyze.project.md`、知识库和 workflow 作为证据
 - 在文档不足时做最小必要代码验证，并区分高低置信结论
 - 适合作为多个 TDX 仓库复用的首轮问题分析入口
+- 用户明确要求时，支持输出 Mermaid 调用链 / 页面跳转图
 
 **安装：**
 ```bash
@@ -84,7 +85,12 @@ npx skills add https://github.com/xiaoxuefeng111/skills --skill tdx-analyze
 /tdx-analyze help
 /tdx-analyze XxxActivity 属于哪个模块
 /tdx-analyze 为什么 Xxx 页面没起来
+/tdx-analyze 用 Mermaid 画一下 Xxx 入口到 XxxPage 的调用链
 ```
+
+**图形输出范围：**
+- 当前只支持调用链图 / 页面跳转图
+- 不支持整个项目知识图谱或交互式图谱
 
 ---
 

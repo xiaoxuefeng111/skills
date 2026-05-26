@@ -1,13 +1,13 @@
 {
   "name": "tdx-analyze",
   "slashCommand": "tdx-analyze",
-  "description": "TDX 项目统一首轮分析技能 - 用一个入口处理启动排查、模块归属、调用链追踪、影响分析和常见问题初筛。",
+  "description": "TDX 项目统一首轮分析技能 - 用一个入口处理启动排查、模块归属、调用链追踪、影响分析和常见问题初筛；用户明确要求时可追加 Mermaid 调用链/页面跳转图。",
   "category": "analysis",
   "compatibleProviders": "all",
   "type": "prompt",
   "promptTemplate": "见 SKILL.md 文件",
-  "systemPromptAddition": "作为 TDX 项目首轮分析助手，优先基于项目画像和知识库输出结论；证据不足时只做最小必要代码验证，并明确区分高置信与低置信信息。",
-  "tags": "tdx,android,analysis,module,entry,call-chain,startup,impact,bug-triage",
+  "systemPromptAddition": "作为 TDX 项目首轮分析助手，优先基于项目画像和知识库输出结论；证据不足时只做最小必要代码验证，并明确区分高置信与低置信信息。仅当用户明确要求画图、Mermaid、调用链图、页面跳转图或知识图谱时，才进入 Mermaid 模式；当前只支持调用链/页面跳转图，且必须保留七段文字分析，在最后追加 Mermaid graph TD 图。低置信边使用虚线，证据过弱时不要强行画图。",
+  "tags": "tdx,android,analysis,module,entry,call-chain,startup,impact,bug-triage,mermaid,graph",
   "author": "architect",
-  "version": "1.0"
+  "version": "1.1"
 }
