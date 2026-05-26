@@ -64,6 +64,30 @@ npx skills add https://github.com/xiaoxuefeng111/skills --skill tdx-publish
 
 ---
 
+### tdx-analyze
+
+TDX 项目统一首轮分析技能。
+
+**功能：**
+- 单入口处理启动排查、模块归属、调用链追踪、影响分析和常见问题初筛
+- 优先读取 `tdx-analyze.project.md`、知识库和 workflow 作为证据
+- 在文档不足时做最小必要代码验证，并区分高低置信结论
+- 适合作为多个 TDX 仓库复用的首轮问题分析入口
+
+**安装：**
+```bash
+npx skills add https://github.com/xiaoxuefeng111/skills --skill tdx-analyze
+```
+
+**使用：**
+```
+/tdx-analyze help
+/tdx-analyze XxxActivity 属于哪个模块
+/tdx-analyze 为什么 Xxx 页面没起来
+```
+
+---
+
 ## 添加新技能
 
 1. 在根目录创建技能文件夹

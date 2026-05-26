@@ -1,0 +1,13 @@
+{
+  "name": "tdx-analyze",
+  "slashCommand": "tdx-analyze",
+  "description": "TDX 项目统一首轮分析技能 - 用一个入口处理启动排查、模块归属、调用链追踪、影响分析和常见问题初筛。",
+  "category": "analysis",
+  "compatibleProviders": "all",
+  "type": "prompt",
+  "promptTemplate": "见 SKILL.md 文件",
+  "systemPromptAddition": "作为 TDX 项目首轮分析助手，优先基于项目画像和知识库输出结论；证据不足时只做最小必要代码验证，并明确区分高置信与低置信信息。",
+  "tags": "tdx,android,analysis,module,entry,call-chain,startup,impact,bug-triage",
+  "author": "architect",
+  "version": "1.0"
+}
